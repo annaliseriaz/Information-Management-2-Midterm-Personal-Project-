@@ -208,7 +208,7 @@ async function handleGoogleLogin() {
     btn.innerHTML = `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18"> Redirecting…`;
     showLoading('Redirecting to Google...');
 
-    // ✅ FIX 1: Save the selected mode (admin/regular) before Google redirects away
+    // Save the selected mode (admin/regular) before Google redirects away
     localStorage.setItem('loginMode', selectedMode);
 
     const { error } = await db.auth.signInWithOAuth({
@@ -395,22 +395,112 @@ function subscribeRealtime() {
         .subscribe();
 }
 
+// ── Download Records as PDF ────────────────────────────────────
+function downloadPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+    // Header background — NEU blue
+    doc.setFillColor(0, 51, 102);
+    doc.rect(0, 0, 297, 28, 'F');
+
+    // Title
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text('NEW ERA UNIVERSITY — Library Visitor Log', 148.5, 11, { align: 'center' });
+
+    // Info row: date, total, peak, print time
+    const dateVal   = document.getElementById('filter-date').value || todayPH();
+    const totalVal  = document.getElementById('total-v-count').innerText;
+    const peakVal   = document.getElementById('peak-hours-display').innerText;
+    const printedAt = new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' });
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(
+        `Date: ${dateVal}   |   Total Visitors: ${totalVal}   |   Peak Hour: ${peakVal}   |   Printed: ${printedAt}`,
+        148.5, 21, { align: 'center' }
+    );
+
+    // Collect rows from the visible table
+    const rows = [];
+    document.querySelectorAll('#visitor-tbody tr').forEach(tr => {
+        const cells = [...tr.querySelectorAll('td')].map(td => td.innerText);
+        if (cells.length === 7) rows.push(cells);
+    });
+
+    if (!rows.length) {
+        showToast('No records to download.', 'error');
+        return;
+    }
+
+    // Table with NEU red header and alternating rows
+    doc.autoTable({
+        startY: 32,
+        head: [['Time-In', 'Full Name', 'ID Number', 'College', 'Program / Course', 'Type', 'Reason']],
+        body: rows,
+        styles: {
+            fontSize: 8,
+            cellPadding: 3,
+            textColor: [30, 30, 30],
+            lineColor: [200, 200, 200],
+            lineWidth: 0.2,
+        },
+        headStyles: {
+            fillColor: [204, 0, 0],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            fontSize: 8.5,
+        },
+        alternateRowStyles: {
+            fillColor: [240, 245, 255],
+        },
+        columnStyles: {
+            0: { cellWidth: 22 },
+            1: { cellWidth: 45 },
+            2: { cellWidth: 28 },
+            3: { cellWidth: 20 },
+            4: { cellWidth: 80 },
+            5: { cellWidth: 20 },
+            6: { cellWidth: 32 },
+        },
+        margin: { left: 10, right: 10 },
+    });
+
+    // Page footer on every page
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(7);
+        doc.setTextColor(150);
+        doc.text(
+            `Page ${i} of ${pageCount}  —  NEU Library Visitor Log  —  Confidential`,
+            148.5,
+            doc.internal.pageSize.height - 5,
+            { align: 'center' }
+        );
+    }
+
+    doc.save(`NEU_Library_Visitors_${dateVal}.pdf`);
+    showToast('PDF downloaded successfully! 📄');
+}
+
 // ── Google Redirect Handler ────────────────────────────────────
 (async () => {
     const { data: { session } } = await db.auth.getSession();
     if (!session) return;
 
-    // ✅ FIX 2: Clean the ugly #access_token=... from the URL bar
+    // Clean the #access_token=... from the URL bar
     window.history.replaceState(null, '', window.location.pathname);
 
     const email = session.user.email;
 
-    // ✅ FIX 3: Read the saved mode from before the Google redirect
+    // Read the saved mode from before the Google redirect
     const savedMode = localStorage.getItem('loginMode') || 'regular';
-    localStorage.removeItem('loginMode'); // clean up after reading
+    localStorage.removeItem('loginMode');
 
     if (savedMode === 'admin') {
-        // Check if this Google account exists in admin_users table
         const { data: adminRow } = await db.from('admin_users')
             .select('email')
             .eq('email', email)
@@ -425,7 +515,7 @@ function subscribeRealtime() {
         return;
     }
 
-    // Regular user flow — fetch or create profile
+    // Regular user flow
     const meta = session.user.user_metadata;
     const { data: existingProfile } = await db.from('user_profiles')
         .select('*')
