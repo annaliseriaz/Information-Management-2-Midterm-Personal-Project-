@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEU Library Visitor Log</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="loading-overlay" class="loading-overlay hidden">⏳ Please wait...</div>
+
+<header>
+    <img src="https://upload.wikimedia.org/wikipedia/en/c/c6/New_Era_University.svg" alt="NEU Logo" class="logo">
+    <div class="mode-switcher" id="top-switcher">
+        <button class="mode-btn active" id="btn-reg" onclick="switchLoginMode('regular')">Regular User</button>
+        <button class="mode-btn" id="btn-adm" onclick="switchLoginMode('admin')">Admin User</button>
+    </div>
+</header>
+
+<!-- Login Panel -->
+<div id="login-container" class="glass-card">
+    <h2 id="login-title" style="margin-bottom: 20px;">New Era University Library Visitor Log</h2>
+    <input type="email" id="email-input" placeholder="Email account">
+    <input type="password" id="pass-input" placeholder="Password" onkeydown="if(event.key==='Enter') handleLogin()">
+    <button class="btn btn-primary" id="login-btn" onclick="handleLogin()">Login</button>
+    <p id="login-hint" style="font-size: 0.7rem; margin-top: 10px; opacity: 0.6;">Enter your institutional email to proceed.</p>
+    <p class="register-link" id="register-link-wrap">
+        Don't have an account? <a onclick="showRegister()">Register Here</a>
+    </p>
+</div>
+
+<!-- Register Panel -->
+<div id="register-container" class="glass-card hidden">
+    <h2 style="margin-bottom: 6px;">Create an Account</h2>
+    <p style="font-size: 0.72rem; opacity: 0.65; margin-bottom: 10px;">NEU Library — New User Registration</p>
+    <input type="text"  id="reg-name"    placeholder="Full Name (Last Name, First Name)">
+    <input type="email" id="reg-email"   placeholder="Institutional Email (e.g. you@neu.edu.ph)">
+    <input type="text"  id="reg-id"      placeholder="Student / Employee ID Number">
+    <select id="reg-college" onchange="updateRegCourses()">
+        <option value="" disabled selected>Select College</option>
+        <option value="COAc">College of Accountancy</option>
+        <option value="COAg">College of Agriculture</option>
+        <option value="CAS">College of Arts and Sciences</option>
+        <option value="CBA">College of Business Administration</option>
+        <option value="COC">College of Communication</option>
+        <option value="ICS">College of Informatics and Computing Studies</option>
+        <option value="COCC">College of Criminology</option>
+        <option value="CED">College of Education</option>
+        <option value="CEA">College of Engineering and Architecture</option>
+        <option value="CMT">College of Medical Technology</option>
+        <option value="CM">College of Midwifery</option>
+        <option value="COM">College of Music</option>
+        <option value="CON">College of Nursing</option>
+        <option value="CPT">College of Physical Therapy</option>
+        <option value="CRT">College of Respiratory Therapy</option>
+        <option value="SOIR">School of International Relations</option>
+        <option value="SGS">School of Graduate Studies</option>
+        <option value="STAFF">Staff</option>
+        <option value="Visitor">Visitor</option>
+    </select>
+    <select id="reg-course">
+        <option value="" disabled selected>Select Program / Course</option>
+    </select>
+    <input type="password" id="reg-pass"    placeholder="Create Password (min. 6 characters)">
+    <input type="password" id="reg-confirm" placeholder="Confirm Password">
+    <button class="btn btn-primary" id="register-btn" onclick="handleRegister()">Create Account</button>
+    <span class="register-back" onclick="showLogin()">&#8592; Back to Login</span>
+</div>
+
+<!-- App Content -->
+<div id="app-content">
+    <div class="welcome-section">
+        <h1 id="welcome-msg">Welcome to NEU Library!</h1>
+        <p id="view-title" style="opacity: 0.8;">Visitor Entry Form</p>
+    </div>
+
+    <!-- Visitor Form -->
+    <div id="visitor-form" class="glass-card" style="max-width: 600px; margin: 0 auto;">
+        <input type="text" id="v-name" placeholder="Full Name (Last Name, First Name)">
+        <input type="text" id="v-id"   placeholder="Student/Employee ID Number">
+
+        <select id="college-select" onchange="updateCourses()">
+            <option value="" disabled selected>Select College</option>
+            <option value="COAc">College of Accountancy</option>
+            <option value="COAg">College of Agriculture</option>
+            <option value="CAS">College of Arts and Sciences</option>
+            <option value="CBA">College of Business Administration</option>
+            <option value="COC">College of Communication</option>
+            <option value="ICS">College of Informatics and Computing Studies</option>
+            <option value="COCC">College of Criminology</option>
+            <option value="CED">College of Education</option>
+            <option value="CEA">College of Engineering and Architecture</option>
+            <option value="CMT">College of Medical Technology</option>
+            <option value="CM">College of Midwifery</option>
+            <option value="COM">College of Music</option>
+            <option value="CON">College of Nursing</option>
+            <option value="CPT">College of Physical Therapy</option>
+            <option value="CRT">College of Respiratory Therapy</option>
+            <option value="SOIR">School of International Relations</option>
+            <option value="SGS">School of Graduate Studies</option>
+            <option value="STAFF">Staff</option>
+            <option value="Visitor">Visitor</option>
+        </select>
+
+        <select id="course-select">
+            <option value="" disabled selected>Select Program/Course</option>
+        </select>
+
+        <select id="visitor-type">
+            <option value="" disabled selected>Visitor Type</option>
+            <option value="Student">Student</option>
+            <option value="Faculty">Faculty</option>
+            <option value="Staff">Staff</option>
+            <option value="Visitors">Visitors</option>
+        </select>
+
+        <select id="v-reason">
+            <option value="" disabled selected>Reason for Visit</option>
+            <option>Study Groups</option>
+            <option>Reading Books</option>
+            <option>Research & Thesis</option>
+            <option>Borrowing & Returning Books</option>
+            <option>Meeting</option>
+            <option>Visiting</option>
+        </select>
+        <button class="btn btn-primary" id="submit-btn" onclick="submitLog()">Submit Entry</button>
+        <button class="btn" style="background:rgba(255,255,255,0.15);color:white;margin-top:8px;" onclick="logoutUser()">Logout</button>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="admin-dashboard" class="hidden">
+        <span id="live-clock">Loading Time...</span>
+        <div class="stats-grid">
+            <div class="glass-card stat-card"><h3>Total Visitors Today</h3><p id="total-v-count">—</p></div>
+            <div class="glass-card stat-card"><h3>Current Date</h3><p id="current-date-display">—</p></div>
+            <div class="glass-card stat-card"><h3>Peak Hour</h3><p id="peak-hours-display">—</p></div>
+        </div>
+
+        <div class="glass-card">
+            <div class="filter-group">
+                <input type="date" id="filter-date" title="Filter Date" onchange="loadAdminData()">
+                <select id="filter-college" onchange="loadAdminData()">
+                    <option value="all">All Colleges</option>
+                    <option value="COAc">COAc</option><option value="COAg">COAg</option>
+                    <option value="CAS">CAS</option><option value="CBA">CBA</option>
+                    <option value="COC">COC</option><option value="ICS">ICS</option>
+                    <option value="COCC">COCC</option><option value="CED">CED</option>
+                    <option value="CEA">CEA</option><option value="CMT">CMT</option>
+                    <option value="CM">CM</option><option value="COM">COM</option>
+                    <option value="CON">CON</option><option value="CPT">CPT</option>
+                    <option value="CRT">CRT</option><option value="SOIR">SOIR</option>
+                    <option value="SGS">SGS</option><option value="STAFF">STAFF</option>
+                    <option value="Visitor">Visitor</option>
+                </select>
+                <select id="filter-reason" onchange="loadAdminData()">
+                    <option value="all">All Reasons</option>
+                    <option>Study Groups</option><option>Reading Books</option>
+                    <option>Research & Thesis</option><option>Borrowing & Returning Books</option>
+                    <option>Meeting</option><option>Visiting</option>
+                </select>
+            </div>
+
+            <div class="table-container">
+                <h3 style="color: var(--neu-red);">
+                    Visitor Log Manifest
+                    <span class="realtime-badge">● LIVE</span>
+                </h3>
+                <table id="visitor-table">
+                    <thead>
+                        <tr>
+                            <th>Time-In</th>
+                            <th>Full Name</th>
+                            <th>ID Number</th>
+                            <th>College</th>
+                            <th>Program/Course</th>
+                            <th>Type</th>
+                            <th>Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody id="visitor-tbody">
+                        <tr><td colspan="7" style="text-align:center;opacity:0.6;">Loading records...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="chart-box">
+                <canvas id="statChart"></canvas>
+            </div>
+        </div>
+        <button class="btn" style="background:rgba(255,255,255,0.2);color:white;width:auto;padding:10px 20px;margin-top:20px;" onclick="logoutAdmin()">Logout Admin</button>
+    </div>
+</div>
+
+<!-- Scripts: load libraries first, then app.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
