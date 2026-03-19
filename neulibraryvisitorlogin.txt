@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEU Library Visitor Log</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+    
     <style>
         :root {
             --neu-blue: #003366;
@@ -72,14 +70,7 @@
 
         .mode-btn.active { background: var(--neu-red); font-weight: 600; }
 
-        #login-container {
-            width: 90%;
-            max-width: 400px;
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        #register-container {
+        #login-container, #register-container {
             width: 90%;
             max-width: 400px;
             margin-top: 20px;
@@ -148,64 +139,44 @@
 
         #live-clock { font-weight: 400; font-size: 1.1rem; color: #00d4ff; margin-bottom: 10px; display: block; }
 
-        .register-link {
-            margin-top: 14px;
-            font-size: 0.78rem;
-            opacity: 0.75;
-        }
-        .register-link a {
-            color: #00d4ff;
-            cursor: pointer;
-            text-decoration: underline;
-            font-weight: 600;
-        }
-        .register-back {
-            font-size: 0.78rem;
-            margin-top: 12px;
-            opacity: 0.75;
-            cursor: pointer;
-            color: #00d4ff;
-            text-decoration: underline;
-            display: block;
-        }
+        .register-link { margin-top: 14px; font-size: 0.78rem; opacity: 0.75; }
+        .register-link a { color: #00d4ff; cursor: pointer; text-decoration: underline; font-weight: 600; }
+        .register-back { font-size: 0.78rem; margin-top: 12px; opacity: 0.75; cursor: pointer; color: #00d4ff; text-decoration: underline; display: block; }
 
         .toast {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            padding: 14px 22px;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            z-index: 9999;
-            transition: opacity 0.4s;
+            position: fixed; bottom: 30px; right: 30px; padding: 14px 22px;
+            border-radius: 10px; font-size: 0.9rem; font-weight: 600; z-index: 9999; transition: opacity 0.4s;
         }
         .toast.success { background: #00b894; color: white; }
-        .toast.error   { background: #d63031; color: white; }
+        .toast.error { background: #d63031; color: white; }
 
         .loading-overlay {
-            position: fixed; inset: 0;
-            background: rgba(0,0,0,0.5);
+            position: fixed; inset: 0; background: rgba(0,0,0,0.5);
             display: flex; align-items: center; justify-content: center;
-            z-index: 9998;
-            font-size: 1.2rem;
-            letter-spacing: 1px;
+            z-index: 9998; font-size: 1.2rem; letter-spacing: 1px;
         }
         .loading-overlay.hidden { display: none; }
 
         .realtime-badge {
-            display: inline-block;
-            background: rgba(0,212,255,0.2);
-            border: 1px solid #00d4ff;
-            color: #00d4ff;
-            font-size: 0.7rem;
-            padding: 2px 10px;
-            border-radius: 50px;
-            margin-left: 10px;
-            vertical-align: middle;
-            animation: pulse 2s infinite;
+            display: inline-block; background: rgba(0,212,255,0.2);
+            border: 1px solid #00d4ff; color: #00d4ff; font-size: 0.7rem;
+            padding: 2px 10px; border-radius: 50px; margin-left: 10px;
+            vertical-align: middle; animation: pulse 2s infinite;
         }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+        .btn-google {
+            background: white; color: #333; display: flex; align-items: center;
+            justify-content: center; gap: 10px; font-weight: 600; font-size: 0.88rem;
+            border: 1px solid rgba(255,255,255,0.3); transition: 0.3s;
+        }
+        .btn-google:hover { background: #f1f1f1; }
+        
+        .divider {
+            display: flex; align-items: center; gap: 10px; margin: 10px 0 2px;
+            opacity: 0.6; font-size: 0.78rem;
+        }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.35); }
     </style>
 </head>
 <body>
@@ -220,19 +191,22 @@
     </div>
 </header>
 
-<!-- Login Panel -->
 <div id="login-container" class="glass-card">
     <h2 id="login-title" style="margin-bottom: 20px;">New Era University Library Visitor Log</h2>
     <input type="email" id="email-input" placeholder="Email account">
     <input type="password" id="pass-input" placeholder="Password" onkeydown="if(event.key==='Enter') handleLogin()">
     <button class="btn btn-primary" id="login-btn" onclick="handleLogin()">Login</button>
+    <div class="divider"><span>or</span></div>
+    <button class="btn btn-google" id="google-btn" onclick="handleGoogleLogin()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="18" height="18">
+        Sign in with Google
+    </button>
     <p id="login-hint" style="font-size: 0.7rem; margin-top: 10px; opacity: 0.6;">Enter your institutional email to proceed.</p>
     <p class="register-link" id="register-link-wrap">
         Don't have an account? <a onclick="showRegister()">Register Here</a>
     </p>
 </div>
 
-<!-- Register Panel -->
 <div id="register-container" class="glass-card hidden">
     <h2 style="margin-bottom: 6px;">Create an Account</h2>
     <p style="font-size: 0.72rem; opacity: 0.65; margin-bottom: 10px;">NEU Library — New User Registration</p>
@@ -270,14 +244,12 @@
     <span class="register-back" onclick="showLogin()">&#8592; Back to Login</span>
 </div>
 
-<!-- App Content -->
 <div id="app-content">
     <div class="welcome-section">
         <h1 id="welcome-msg">Welcome to NEU Library!</h1>
         <p id="view-title" style="opacity: 0.8;">Visitor Entry Form</p>
     </div>
 
-    <!-- Visitor Form -->
     <div id="visitor-form" class="glass-card" style="max-width: 600px; margin: 0 auto;">
         <input type="text" id="v-name" placeholder="Full Name (Last Name, First Name)">
         <input type="text" id="v-id"   placeholder="Student/Employee ID Number">
@@ -330,7 +302,6 @@
         <button class="btn" style="background:rgba(255,255,255,0.15);color:white;margin-top:8px;" onclick="logoutUser()">Logout</button>
     </div>
 
-    <!-- Admin Dashboard -->
     <div id="admin-dashboard" class="hidden">
         <span id="live-clock">Loading Time...</span>
         <div class="stats-grid">
@@ -394,19 +365,21 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-    // ── Supabase Init ──────────────────────────────────────────────
+    // Supabase Init
     const SUPABASE_URL  = 'https://auxwdymnfmbqhdcufeoc.supabase.co';
     const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1eHdkeW1uZm1icWhkY3VmZW9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MDI3MjYsImV4cCI6MjA4OTM3ODcyNn0.w4M7zdLwAHfyP1sMEbLS9E-oKOtV5mCkG9SRCic3H4M';
     const { createClient } = supabase;
     const db = createClient(SUPABASE_URL, SUPABASE_ANON);
 
-    // ── State ──────────────────────────────────────────────────────
-    let selectedMode   = 'regular';
-    let chartInstance  = null;
+    // State
+    let selectedMode    = 'regular';
+    let chartInstance   = null;
     let realtimeChannel = null;
 
-    // ── Courses Map ────────────────────────────────────────────────
     const coursesByCollege = {
         "COAc": ["Bachelor of Science in Accountancy","Bachelor of Science in Accounting Information System"],
         "COAg": ["Bachelor of Science in Agriculture"],
@@ -415,45 +388,42 @@
         "COC":  ["Bachelor of Arts in Broadcasting","Bachelor of Arts in Communication","Bachelor of Arts in Journalism"],
         "ICS":  ["Bachelor of Library and Information Science","Bachelor of Science in Information Technology","Bachelor of Science in Computer Science","Bachelor of Science in Entertainment and Multimedia Computing with Specialization in Digital Animation Technology","Bachelor of Science in Entertainment and Multimedia Computing with Specialization in Game Development","Bachelor of Science in Information System"],
         "COCC": ["Bachelor of Science in Criminology"],
-        "CED":  ["Bachelor of Elementary Education","Bachelor of Elementary Education with Specialization in Preschool Education","Bachelor of Elementary Education with Specialization in Special Education","Bachelor of Secondary Education Major in Music, Arts, and Physical Education","Bachelor of Secondary Education Major in English","Bachelor of Secondary Education Major in Filipino","Bachelor of Secondary Education Major in Mathematics","Bachelor of Secondary Education Major in Science","Bachelor of Secondary Education Major in Social Studies","Bachelor of Secondary Education Major in Technology and Livelihood Education"],
-        "CEA":  ["Bachelor of Science in Architecture","Bachelor of Science in Astronomy","Bachelor of Science in Civil Engineering","Bachelor of Science in Electrical Engineering","Bachelor of Science in Electronics Engineering","Bachelor of Science in Industrial Engineering","Bachelor of Science in Mechanical Engineering"],
+        "CED":  ["Bachelor of Elementary Education","Bachelor of Secondary Education Major in English","Bachelor of Secondary Education Major in Mathematics"],
+        "CEA":  ["Bachelor of Science in Architecture","Bachelor of Science in Civil Engineering","Bachelor of Science in Electrical Engineering","Bachelor of Science in Mechanical Engineering"],
         "CMT":  ["Bachelor of Science in Medical Technology"],
         "CM":   ["Diploma in Midwifery"],
-        "COM":  ["Bachelor of Music in Choral Conducting","Bachelor of Music in Music Education","Bachelor of Music in Piano","Bachelor of Music in Voice"],
+        "COM":  ["Bachelor of Music in Music Education"],
         "CON":  ["Bachelor of Science in Nursing"],
         "CPT":  ["Bachelor of Science in Physical Therapy"],
         "CRT":  ["Bachelor of Science in Respiratory Therapy"],
         "SOIR": ["Bachelor of Arts in Foreign Service"],
-        "SGS":  ["Doctor in Business Administration","Master in Business Administration","Master in Business Administration Major in Human Resource Management","Master in Business Administration Major in Organizational Development","Doctor of Philosophy in Education Major in Bilingual Education","Doctor of Philosophy in Education Major in Early Childhood Education","Doctor of Philosophy in Education Major in Educational Leadership","Doctor of Philosophy in Education Major in Educational Management","Doctor of Philosophy in Education Major in Guidance & Counseling","Doctor of Philosophy in Education Major in Instructional Leadership","Doctor of Philosophy in Education Major in Special Education and Inclusive Education","Master of Arts in Education Major in Early Childhood Education","Master of Arts in Education Major in Educational Management","Master of Arts in Education Major in Educational Psychology","Master of Arts in Education Major in Educational Technology","Master of Arts in Education Major in Environmental Education","Master of Arts in Education Major in Filipino","Master of Arts in Education Major in Guidance and Counseling","Master of Arts in Education Major in Language Education","Master of Arts in Education Major in Mathematics Education","Master of Arts in Education Major in Reading Education","Master of Arts in Education Major in Science Education","Master of Arts in Education Major in Social Science","Master of Arts in Education Major in Special Education and Inclusive Education"],
+        "SGS":  ["Doctor in Business Administration","Master in Business Administration"],
         "STAFF":   ["Staff"],
         "Visitor": ["Visitor"]
     };
 
-    // ── Helpers ────────────────────────────────────────────────────
+    // Helpers
     function showLoading(msg = '⏳ Please wait...') {
         const el = document.getElementById('loading-overlay');
-        el.textContent = msg; el.classList.remove('hidden');
+        el.textContent = msg;
+        el.classList.remove('hidden');
     }
-    function hideLoading() { document.getElementById('loading-overlay').classList.add('hidden'); }
+
+    function hideLoading() {
+        document.getElementById('loading-overlay').classList.add('hidden');
+    }
 
     function showToast(msg, type = 'success') {
         const t = document.createElement('div');
-        t.className = `toast ${type}`; t.textContent = msg;
+        t.className = `toast ${type}`;
+        t.textContent = msg;
         document.body.appendChild(t);
         setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 3500);
     }
 
-    function todayPH() {
-        return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
-    }
+    function todayPH() { return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' }); }
 
-    function formatTimePH(isoString) {
-        return new Date(isoString).toLocaleTimeString('en-US', {
-            hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Manila'
-        });
-    }
-
-    // ── UI ─────────────────────────────────────────────────────────
+    // UI Logic
     function switchLoginMode(mode) {
         selectedMode = mode;
         document.getElementById('btn-reg').classList.toggle('active', mode === 'regular');
@@ -479,8 +449,12 @@
         const now = new Date();
         const clockEl = document.getElementById('live-clock');
         if (clockEl) {
-            clockEl.innerText = 'Philippine Standard Time: ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, timeZone: 'Asia/Manila' });
-            document.getElementById('current-date-display').innerText = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'Asia/Manila' });
+            clockEl.innerText = 'Philippine Standard Time: ' + now.toLocaleTimeString('en-US', {
+                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, timeZone: 'Asia/Manila'
+            });
+            document.getElementById('current-date-display').innerText = now.toLocaleDateString('en-US', {
+                month: 'long', day: 'numeric', year: 'numeric', timeZone: 'Asia/Manila'
+            });
         }
     }
     setInterval(updateTime, 1000);
@@ -490,7 +464,9 @@
         const sel = document.getElementById('course-select');
         sel.innerHTML = '<option value="" disabled selected>Select Program/Course</option>';
         (coursesByCollege[college] || []).forEach(c => {
-            const o = document.createElement('option'); o.value = o.textContent = c; sel.appendChild(o);
+            const o = document.createElement('option');
+            o.value = o.textContent = c;
+            sel.appendChild(o);
         });
     }
 
@@ -499,121 +475,76 @@
         const sel = document.getElementById('reg-course');
         sel.innerHTML = '<option value="" disabled selected>Select Program / Course</option>';
         (coursesByCollege[college] || []).forEach(c => {
-            const o = document.createElement('option'); o.value = o.textContent = c; sel.appendChild(o);
+            const o = document.createElement('option');
+            o.value = o.textContent = c;
+            sel.appendChild(o);
         });
     }
 
-    // ── Register ───────────────────────────────────────────────────
+    // Auth & Actions
     async function handleRegister() {
-        const name    = document.getElementById('reg-name').value.trim();
-        const email   = document.getElementById('reg-email').value.trim().toLowerCase();
-        const id_num  = document.getElementById('reg-id').value.trim();
+        const name = document.getElementById('reg-name').value.trim();
+        const email = document.getElementById('reg-email').value.trim().toLowerCase();
+        const id_num = document.getElementById('reg-id').value.trim();
         const college = document.getElementById('reg-college').value;
-        const course  = document.getElementById('reg-course').value;
-        const pass    = document.getElementById('reg-pass').value;
+        const course = document.getElementById('reg-course').value;
+        const pass = document.getElementById('reg-pass').value;
         const confirm = document.getElementById('reg-confirm').value;
 
         if (!name || !email || !id_num || !college || !course || !pass || !confirm) {
             showToast('Please fill in all fields.', 'error'); return;
         }
-        if (!email.endsWith('@neu.edu.ph')) {
-            showToast('Please use your institutional email (@neu.edu.ph).', 'error'); return;
-        }
-        if (pass.length < 6) {
-            showToast('Password must be at least 6 characters.', 'error'); return;
-        }
-        if (pass !== confirm) {
-            showToast('Passwords do not match.', 'error'); return;
-        }
+        if (pass !== confirm) { showToast('Passwords do not match.', 'error'); return; }
 
-        const btn = document.getElementById('register-btn');
-        btn.disabled = true; btn.textContent = 'Creating account…';
-        showLoading('Creating your account...');
-
-        // 1. Create auth user in Supabase
+        showLoading('Creating account...');
         const { data, error } = await db.auth.signUp({
-            email,
-            password: pass,
-            options: {
-                data: { full_name: name, id_number: id_num, college, course }
-            }
+            email, password: pass,
+            options: { data: { full_name: name, id_number: id_num, college, course } }
         });
 
-        if (error) {
-            hideLoading(); btn.disabled = false; btn.textContent = 'Create Account';
-            showToast('Registration failed: ' + error.message, 'error'); return;
-        }
-
-        // 2. Save profile info to user_profiles table
-        const userId = data.user?.id;
-        if (userId) {
-            await db.from('user_profiles').insert([{
-                id: userId, full_name: name, email,
-                id_number: id_num, college, course
-            }]);
-        }
-
-        hideLoading(); btn.disabled = false; btn.textContent = 'Create Account';
-        showToast(`Account created! Welcome, ${name}. You may now log in. ✅`);
-
-        // Clear form & go back to login
-        ['reg-name','reg-email','reg-id','reg-pass','reg-confirm'].forEach(id => document.getElementById(id).value = '');
-        document.getElementById('reg-college').value = '';
-        document.getElementById('reg-course').innerHTML = '<option value="" disabled selected>Select Program / Course</option>';
-        setTimeout(showLogin, 1500);
+        if (error) { hideLoading(); showToast(error.message, 'error'); return; }
+        
+        await db.from('user_profiles').insert([{ id: data.user.id, full_name: name, email, id_number: id_num, college, course }]);
+        hideLoading();
+        showToast('Registration successful!');
+        showLogin();
     }
 
-    // ── Login ──────────────────────────────────────────────────────
     async function handleLogin() {
         const email = document.getElementById('email-input').value.trim().toLowerCase();
-        const pass  = document.getElementById('pass-input').value;
-        if (!email || !pass) { showToast('Please enter credentials.', 'error'); return; }
+        const pass = document.getElementById('pass-input').value;
+        if (!email || !pass) return;
 
-        const btn = document.getElementById('login-btn');
-        btn.disabled = true; btn.textContent = 'Logging in…';
         showLoading('Authenticating...');
-
         const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
-        hideLoading(); btn.disabled = false; btn.textContent = 'Login';
+        hideLoading();
 
-        if (error || !data.user) { showToast('Invalid email or password.', 'error'); return; }
+        if (error) { showToast('Invalid credentials.', 'error'); return; }
 
         if (selectedMode === 'admin') {
-            // Check admin_users table
             const { data: adminRow } = await db.from('admin_users').select('email').eq('email', email).single();
-            if (!adminRow) {
-                showToast('You do not have admin privileges.', 'error');
-                await db.auth.signOut(); return;
-            }
+            if (!adminRow) { showToast('Unauthorized access.', 'error'); await db.auth.signOut(); return; }
             enterAdmin();
         } else {
-            // Fetch profile for pre-fill
             const { data: profile } = await db.from('user_profiles').select('*').eq('id', data.user.id).single();
-            enterRegular(data.user.email, profile);
+            enterRegular(email, profile);
         }
+    }
+
+    async function handleGoogleLogin() {
+        localStorage.setItem('loginMode', selectedMode);
+        await db.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
     }
 
     function enterRegular(email, profile) {
         document.getElementById('login-container').classList.add('hidden');
         document.getElementById('app-content').style.display = 'block';
-        document.getElementById('visitor-form').classList.remove('hidden');
-        document.getElementById('admin-dashboard').classList.add('hidden');
         document.getElementById('welcome-msg').innerText = `Welcome, ${profile?.full_name || email}!`;
-        document.getElementById('view-title').innerText  = 'Visitor Entry Form';
-
-        // Pre-fill name and ID from profile
         if (profile) {
-            document.getElementById('v-name').value = profile.full_name || '';
-            document.getElementById('v-id').value   = profile.id_number || '';
-
-            // Pre-select college & course
-            if (profile.college) {
-                document.getElementById('college-select').value = profile.college;
-                updateCourses();
-                setTimeout(() => {
-                    if (profile.course) document.getElementById('course-select').value = profile.course;
-                }, 100);
-            }
+            document.getElementById('v-name').value = profile.full_name;
+            document.getElementById('v-id').value = profile.id_number;
+            document.getElementById('college-select').value = profile.college;
+            updateCourses();
         }
     }
 
@@ -622,142 +553,69 @@
         document.getElementById('app-content').style.display = 'block';
         document.getElementById('visitor-form').classList.add('hidden');
         document.getElementById('admin-dashboard').classList.remove('hidden');
-        document.getElementById('view-title').innerText  = 'Admin Analytics Dashboard';
-        document.getElementById('welcome-msg').innerText = 'System Administrator Access';
-        document.getElementById('top-switcher').style.display = 'none';
         document.getElementById('filter-date').value = todayPH();
-        updateTime();
         loadAdminData();
-        subscribeRealtime();
     }
 
-    async function logoutUser()  { await db.auth.signOut(); location.reload(); }
-    async function logoutAdmin() {
-        await db.auth.signOut();
-        if (realtimeChannel) db.removeChannel(realtimeChannel);
-        location.reload();
-    }
-
-    // ── Submit Visitor Log ─────────────────────────────────────────
     async function submitLog() {
-        const name    = document.getElementById('v-name').value.trim();
-        const id_num  = document.getElementById('v-id').value.trim();
-        const college = document.getElementById('college-select').value;
-        const course  = document.getElementById('course-select').value;
-        const type    = document.getElementById('visitor-type').value;
-        const reason  = document.getElementById('v-reason').value;
+        const entry = {
+            full_name: document.getElementById('v-name').value,
+            id_number: document.getElementById('v-id').value,
+            college: document.getElementById('college-select').value,
+            course: document.getElementById('course-select').value,
+            visitor_type: document.getElementById('visitor-type').value,
+            reason: document.getElementById('v-reason').value,
+            time_in: new Date().toISOString()
+        };
 
-        if (!name || !id_num || !college || !course || !type || !reason) {
-            showToast('Please complete all fields.', 'error'); return;
+        const { error } = await db.from('visitor_logs').insert([entry]);
+        if (error) showToast('Error submitting log.', 'error');
+        else {
+            showToast('Entry recorded! Have a great day.');
+            // Clear form
+            ['v-reason', 'visitor-type'].forEach(id => document.getElementById(id).selectedIndex = 0);
         }
-
-        const btn = document.getElementById('submit-btn');
-        btn.disabled = true; btn.textContent = 'Submitting…';
-        showLoading('Saving your entry...');
-
-        const { error } = await db.from('visitor_logs').insert([{
-            full_name: name, id_number: id_num,
-            college, course, visitor_type: type, reason
-        }]);
-
-        hideLoading(); btn.disabled = false; btn.textContent = 'Submit Entry';
-
-        if (error) { showToast('Error: ' + error.message, 'error'); return; }
-
-        showToast(`Entry saved! Welcome, ${name} 🎉`);
-        document.getElementById('visitor-type').value = '';
-        document.getElementById('v-reason').value = '';
     }
 
-    // ── Admin Data ─────────────────────────────────────────────────
+    async function logoutUser() { await db.auth.signOut(); location.reload(); }
+    async function logoutAdmin() { await db.auth.signOut(); location.reload(); }
+
     async function loadAdminData() {
-        showLoading('Loading dashboard...');
-        const dateVal = document.getElementById('filter-date').value || todayPH();
-        const college = document.getElementById('filter-college').value;
-        const reason  = document.getElementById('filter-reason').value;
-
-        let query = db.from('visitor_logs').select('*')
-            .gte('time_in', dateVal + 'T00:00:00')
-            .lte('time_in', dateVal + 'T23:59:59')
-            .order('time_in', { ascending: false });
-
-        if (college !== 'all') query = query.eq('college', college);
-        if (reason  !== 'all') query = query.eq('reason', reason);
-
+        const date = document.getElementById('filter-date').value;
+        let query = db.from('visitor_logs').select('*').gte('time_in', `${date}T00:00:00`).lte('time_in', `${date}T23:59:59`);
+        
         const { data, error } = await query;
-        hideLoading();
+        if (error) return;
 
-        if (error) { showToast('Error loading data: ' + error.message, 'error'); return; }
-
-        renderTable(data || []);
-        renderStats(data || []);
-        renderChart(data || []);
-    }
-
-    function renderTable(rows) {
         const tbody = document.getElementById('visitor-tbody');
-        if (!rows.length) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;opacity:0.6;">No records found.</td></tr>';
-            return;
-        }
-        tbody.innerHTML = rows.map(r => `
+        tbody.innerHTML = data.map(log => `
             <tr>
-                <td>${formatTimePH(r.time_in)}</td>
-                <td>${r.full_name}</td>
-                <td>${r.id_number}</td>
-                <td>${r.college}</td>
-                <td>${r.course}</td>
-                <td>${r.visitor_type}</td>
-                <td>${r.reason}</td>
-            </tr>`).join('');
+                <td>${new Date(log.time_in).toLocaleTimeString()}</td>
+                <td>${log.full_name}</td>
+                <td>${log.id_number}</td>
+                <td>${log.college}</td>
+                <td>${log.course}</td>
+                <td>${log.visitor_type}</td>
+                <td>${log.reason}</td>
+            </tr>
+        `).join('') || '<tr><td colspan="7" style="text-align:center;">No records found.</td></tr>';
+        
+        document.getElementById('total-v-count').innerText = data.length;
     }
 
-    function renderStats(rows) {
-        document.getElementById('total-v-count').innerText = rows.length;
-        const hourCounts = {};
-        rows.forEach(r => {
-            const h = new Date(r.time_in).getHours();
-            hourCounts[h] = (hourCounts[h] || 0) + 1;
-        });
-        const peak = Object.keys(hourCounts).sort((a,b) => hourCounts[b]-hourCounts[a])[0];
-        document.getElementById('peak-hours-display').innerText = peak !== undefined
-            ? `${parseInt(peak) % 12 || 12}:00 ${parseInt(peak) < 12 ? 'AM' : 'PM'}` : '—';
-    }
-
-    function renderChart(rows) {
-        const ctx = document.getElementById('statChart').getContext('2d');
-        if (chartInstance) chartInstance.destroy();
-        const hourLabels = [], hourData = [];
-        for (let h = 7; h <= 19; h++) {
-            hourLabels.push(`${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`);
-            hourData.push(rows.filter(r => new Date(r.time_in).getHours() === h).length);
-        }
-        chartInstance = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: hourLabels,
-                datasets: [{ label: 'Hourly Visitors', data: hourData, borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.2)', fill: true, tension: 0.4 }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                scales: {
-                    y: { ticks: { color: 'white', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.1)' } },
-                    x: { ticks: { color: 'white' },             grid: { color: 'rgba(255,255,255,0.1)' } }
-                },
-                plugins: { legend: { labels: { color: 'white' } } }
+    // Initialize session check
+    document.addEventListener('DOMContentLoaded', async () => {
+        const { data: { session } } = await db.auth.getSession();
+        if (session) {
+            const mode = localStorage.getItem('loginMode') || 'regular';
+            if (mode === 'admin') enterAdmin();
+            else {
+                const { data: profile } = await db.from('user_profiles').select('*').eq('id', session.user.id).single();
+                enterRegular(session.user.email, profile);
             }
-        });
-    }
-
-    // ── Realtime ───────────────────────────────────────────────────
-    function subscribeRealtime() {
-        realtimeChannel = db.channel('visitor_logs_changes')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'visitor_logs' }, payload => {
-                showToast(`New visitor logged: ${payload.new.full_name}`);
-                loadAdminData();
-            })
-            .subscribe();
-    }
+        }
+    });
 </script>
+
 </body>
 </html>
