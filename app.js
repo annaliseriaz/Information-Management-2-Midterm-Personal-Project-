@@ -201,6 +201,26 @@ async function handleLogin() {
     }
 }
 
+async function handleGoogleLogin() {
+    const btn = document.getElementById('google-btn');
+    btn.disabled = true;
+    btn.innerHTML = `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18"> Redirecting…`;
+    showLoading('Redirecting to Google...');
+ 
+    const { error } = await db.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+            redirectTo: window.location.href   // returns to the same page after Google auth
+        }
+    });
+ 
+    hideLoading();
+    btn.disabled = false;
+    btn.innerHTML = `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" height="18"> Sign in with Google`;
+ 
+    if (error) showToast('Google sign-in failed: ' + error.message, 'error');
+}
+
 function enterRegular(email, profile) {
     document.getElementById('login-container').classList.add('hidden');
     document.getElementById('app-content').style.display = 'block';
@@ -369,3 +389,36 @@ function subscribeRealtime() {
         })
         .subscribe();
 }
+
+(async () => {
+    const { data: { session } } = await db.auth.getSession();
+    if (!session) return;   // not a Google redirect, normal flow
+ 
+    const email = session.user.email;
+ 
+    // Check if admin first
+    const { data: adminRow } = await db.from('admin_users').select('email').eq('email', email).single();
+    if (adminRow) {
+        enterAdmin();
+        return;
+    }
+ 
+    // Otherwise treat as regular user — upsert profile from Google metadata
+    const meta = session.user.user_metadata;
+    const { data: existingProfile } = await db.from('user_profiles').select('*').eq('id', session.user.id).single();
+ 
+    if (!existingProfile) {
+        // First-time Google user: insert a minimal profile (they can complete it later)
+        await db.from('user_profiles').insert([{
+            id:        session.user.id,
+            full_name: meta.full_name || meta.name || email,
+            email:     email,
+            id_number: '',
+            college:   '',
+            course:    ''
+        }]);
+    }
+ 
+    const profile = existingProfile || { full_name: meta.full_name || meta.name || email };
+    enterRegular(email, profile);
+})();
