@@ -1,29 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>NEU Library Visitor Log</title>
-        <link
-            href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
-            rel="stylesheet">
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEU Library Visitor Log</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+    <style>
         :root {
             --neu-blue: #003366;
             --neu-red: #cc0000;
             --glass-bg: rgba(255, 255, 255, 0.1);
             --glass-border: rgba(255, 255, 255, 0.2);
-
         }
-
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
 
-
         body {
-            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRPognD4LB3Anr57J-pgjQXNh96zEuJe0z9SQ&s');
+            background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                        url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRPognD4LB3Anr57J-pgjQXNh96zEuJe0z9SQ&s');
             background-size: cover;
             background-attachment: fixed;
             min-height: 100vh;
@@ -33,7 +30,6 @@
             color: white;
         }
 
-
         .glass-card {
             background: var(--glass-bg);
             backdrop-filter: blur(15px);
@@ -41,7 +37,6 @@
             border-radius: 15px;
             padding: 30px;
         }
-
 
         header {
             width: 100%;
@@ -53,9 +48,7 @@
             gap: 15px;
         }
 
-
         .logo { height: 100px; display: block; margin: 0 auto; }
-
 
         .mode-switcher {
             display: flex;
@@ -65,7 +58,6 @@
             border: 1px solid var(--glass-border);
             margin-bottom: 10px;
         }
-
 
         .mode-btn {
             padding: 8px 20px;
@@ -87,6 +79,12 @@
             text-align: center;
         }
 
+        #register-container {
+            width: 90%;
+            max-width: 400px;
+            margin-top: 20px;
+            text-align: center;
+        }
 
         input, select {
             width: 100%;
@@ -100,7 +98,6 @@
         }
 
         ::placeholder { color: rgba(255,255,255,0.7); }
-
         option { color: black; }
 
         .btn {
@@ -116,10 +113,10 @@
 
         .btn-primary { background: var(--neu-blue); color: white; }
         .btn-primary:hover { background: #004a94; }
-        #app-content { display: none; width: 95%; max-width: 1100px; margin-top: 20px; padding-bottom: 50px;}
+        .btn-primary:disabled { background: #555; cursor: not-allowed; }
 
+        #app-content { display: none; width: 95%; max-width: 1100px; margin-top: 20px; padding-bottom: 50px; }
         .welcome-section { text-align: center; margin-bottom: 30px; }
-
 
         .stats-grid {
             display: grid;
@@ -131,50 +128,37 @@
         .stat-card { text-align: center; padding: 20px; }
         .stat-card h3 { font-size: 0.8rem; text-transform: uppercase; opacity: 0.8; margin-bottom: 10px; }
         .stat-card p { font-size: 1.8rem; font-weight: bold; }
+
         .chart-box { height: 300px; width: 100%; margin-top: 20px; }
+
         .hidden { display: none !important; }
 
-        
         .filter-group {
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
-
         .filter-group select, .filter-group input { width: auto; min-width: 150px; }
+
         .table-container { margin-top: 20px; overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--glass-border); }
         th { background: rgba(255,255,255,0.1); color: var(--neu-red); text-transform: uppercase; letter-spacing: 1px; }
 
-        #live-clock { font-weight: 400; font-size: 1.1rem; color: #00d4ff; margin-bottom: 10px; display: block;}
+        #live-clock { font-weight: 400; font-size: 1.1rem; color: #00d4ff; margin-bottom: 10px; display: block; }
 
-
-        /* ── REGISTER FORM ADDITIONS ONLY ── */
         .register-link {
             margin-top: 14px;
             font-size: 0.78rem;
             opacity: 0.75;
         }
-
         .register-link a {
             color: #00d4ff;
             cursor: pointer;
             text-decoration: underline;
             font-weight: 600;
         }
-
-        .register-link a:hover { opacity: 0.8; }
-
-        #register-container {
-            width: 90%;
-            max-width: 400px;
-            margin-top: 20px;
-            text-align: center;
-        }
-
-
         .register-back {
             font-size: 0.78rem;
             margin-top: 12px;
@@ -182,445 +166,598 @@
             cursor: pointer;
             color: #00d4ff;
             text-decoration: underline;
+            display: block;
         }
 
-        .register-back:hover { opacity: 0.9; }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 14px 22px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            z-index: 9999;
+            transition: opacity 0.4s;
+        }
+        .toast.success { background: #00b894; color: white; }
+        .toast.error   { background: #d63031; color: white; }
 
-        /* ── END REGISTER ADDITIONS ── */
+        .loading-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9998;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+        .loading-overlay.hidden { display: none; }
 
+        .realtime-badge {
+            display: inline-block;
+            background: rgba(0,212,255,0.2);
+            border: 1px solid #00d4ff;
+            color: #00d4ff;
+            font-size: 0.7rem;
+            padding: 2px 10px;
+            border-radius: 50px;
+            margin-left: 10px;
+            vertical-align: middle;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
     </style>
-    </head>
-    <body>
-        <header>
-            <img
-                src="https://upload.wikimedia.org/wikipedia/en/c/c6/New_Era_University.svg"
-                alt="NEU Logo" class="logo">
-            <div class="mode-switcher" id="top-switcher">
-                <button class="mode-btn active" id="btn-reg"
-                    onclick="switchLoginMode('regular')">Regular User</button>
-                <button class="mode-btn" id="btn-adm"
-                    onclick="switchLoginMode('admin')">Admin User</button>
-            </div>
-        </header>
+</head>
+<body>
 
-        <div id="login-container" class="glass-card">
-            <h2 id="login-title" style="margin-bottom: 20px;">New Era University
-                Library Visitor Log</h2>
-            <input type="email" id="email-input" placeholder="Email account">
-            <input type="password" id="pass-input" placeholder="Password">
-            <button class="btn btn-primary"
-                onclick="handleLogin()">Login</button>
-            <p id="login-hint"
-                style="font-size: 0.7rem; margin-top: 10px; opacity: 0.6;">Enter
-                your institutional email to proceed.</p>
+<div id="loading-overlay" class="loading-overlay hidden">⏳ Please wait...</div>
 
-            <!-- ADDED: Register Here link (only visible in regular mode) -->
-            <p class="register-link" id="register-link-wrap">
-                Don't have an account? <a onclick="showRegister()">Register Here</a>
-            </p>
+<header>
+    <img src="https://upload.wikimedia.org/wikipedia/en/c/c6/New_Era_University.svg" alt="NEU Logo" class="logo">
+    <div class="mode-switcher" id="top-switcher">
+        <button class="mode-btn active" id="btn-reg" onclick="switchLoginMode('regular')">Regular User</button>
+        <button class="mode-btn" id="btn-adm" onclick="switchLoginMode('admin')">Admin User</button>
+    </div>
+</header>
+
+<!-- Login Panel -->
+<div id="login-container" class="glass-card">
+    <h2 id="login-title" style="margin-bottom: 20px;">New Era University Library Visitor Log</h2>
+    <input type="email" id="email-input" placeholder="Email account">
+    <input type="password" id="pass-input" placeholder="Password" onkeydown="if(event.key==='Enter') handleLogin()">
+    <button class="btn btn-primary" id="login-btn" onclick="handleLogin()">Login</button>
+    <p id="login-hint" style="font-size: 0.7rem; margin-top: 10px; opacity: 0.6;">Enter your institutional email to proceed.</p>
+    <p class="register-link" id="register-link-wrap">
+        Don't have an account? <a onclick="showRegister()">Register Here</a>
+    </p>
+</div>
+
+<!-- Register Panel -->
+<div id="register-container" class="glass-card hidden">
+    <h2 style="margin-bottom: 6px;">Create an Account</h2>
+    <p style="font-size: 0.72rem; opacity: 0.65; margin-bottom: 10px;">NEU Library — New User Registration</p>
+    <input type="text"  id="reg-name"    placeholder="Full Name (Last Name, First Name)">
+    <input type="email" id="reg-email"   placeholder="Institutional Email (e.g. you@neu.edu.ph)">
+    <input type="text"  id="reg-id"      placeholder="Student / Employee ID Number">
+    <select id="reg-college" onchange="updateRegCourses()">
+        <option value="" disabled selected>Select College</option>
+        <option value="COAc">College of Accountancy</option>
+        <option value="COAg">College of Agriculture</option>
+        <option value="CAS">College of Arts and Sciences</option>
+        <option value="CBA">College of Business Administration</option>
+        <option value="COC">College of Communication</option>
+        <option value="ICS">College of Informatics and Computing Studies</option>
+        <option value="COCC">College of Criminology</option>
+        <option value="CED">College of Education</option>
+        <option value="CEA">College of Engineering and Architecture</option>
+        <option value="CMT">College of Medical Technology</option>
+        <option value="CM">College of Midwifery</option>
+        <option value="COM">College of Music</option>
+        <option value="CON">College of Nursing</option>
+        <option value="CPT">College of Physical Therapy</option>
+        <option value="CRT">College of Respiratory Therapy</option>
+        <option value="SOIR">School of International Relations</option>
+        <option value="SGS">School of Graduate Studies</option>
+        <option value="STAFF">Staff</option>
+        <option value="Visitor">Visitor</option>
+    </select>
+    <select id="reg-course">
+        <option value="" disabled selected>Select Program / Course</option>
+    </select>
+    <input type="password" id="reg-pass"    placeholder="Create Password (min. 6 characters)">
+    <input type="password" id="reg-confirm" placeholder="Confirm Password">
+    <button class="btn btn-primary" id="register-btn" onclick="handleRegister()">Create Account</button>
+    <span class="register-back" onclick="showLogin()">&#8592; Back to Login</span>
+</div>
+
+<!-- App Content -->
+<div id="app-content">
+    <div class="welcome-section">
+        <h1 id="welcome-msg">Welcome to NEU Library!</h1>
+        <p id="view-title" style="opacity: 0.8;">Visitor Entry Form</p>
+    </div>
+
+    <!-- Visitor Form -->
+    <div id="visitor-form" class="glass-card" style="max-width: 600px; margin: 0 auto;">
+        <input type="text" id="v-name" placeholder="Full Name (Last Name, First Name)">
+        <input type="text" id="v-id"   placeholder="Student/Employee ID Number">
+
+        <select id="college-select" onchange="updateCourses()">
+            <option value="" disabled selected>Select College</option>
+            <option value="COAc">College of Accountancy</option>
+            <option value="COAg">College of Agriculture</option>
+            <option value="CAS">College of Arts and Sciences</option>
+            <option value="CBA">College of Business Administration</option>
+            <option value="COC">College of Communication</option>
+            <option value="ICS">College of Informatics and Computing Studies</option>
+            <option value="COCC">College of Criminology</option>
+            <option value="CED">College of Education</option>
+            <option value="CEA">College of Engineering and Architecture</option>
+            <option value="CMT">College of Medical Technology</option>
+            <option value="CM">College of Midwifery</option>
+            <option value="COM">College of Music</option>
+            <option value="CON">College of Nursing</option>
+            <option value="CPT">College of Physical Therapy</option>
+            <option value="CRT">College of Respiratory Therapy</option>
+            <option value="SOIR">School of International Relations</option>
+            <option value="SGS">School of Graduate Studies</option>
+            <option value="STAFF">Staff</option>
+            <option value="Visitor">Visitor</option>
+        </select>
+
+        <select id="course-select">
+            <option value="" disabled selected>Select Program/Course</option>
+        </select>
+
+        <select id="visitor-type">
+            <option value="" disabled selected>Visitor Type</option>
+            <option value="Student">Student</option>
+            <option value="Faculty">Faculty</option>
+            <option value="Staff">Staff</option>
+            <option value="Visitors">Visitors</option>
+        </select>
+
+        <select id="v-reason">
+            <option value="" disabled selected>Reason for Visit</option>
+            <option>Study Groups</option>
+            <option>Reading Books</option>
+            <option>Research & Thesis</option>
+            <option>Borrowing & Returning Books</option>
+            <option>Meeting</option>
+            <option>Visiting</option>
+        </select>
+        <button class="btn btn-primary" id="submit-btn" onclick="submitLog()">Submit Entry</button>
+        <button class="btn" style="background:rgba(255,255,255,0.15);color:white;margin-top:8px;" onclick="logoutUser()">Logout</button>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="admin-dashboard" class="hidden">
+        <span id="live-clock">Loading Time...</span>
+        <div class="stats-grid">
+            <div class="glass-card stat-card"><h3>Total Visitors Today</h3><p id="total-v-count">—</p></div>
+            <div class="glass-card stat-card"><h3>Current Date</h3><p id="current-date-display">—</p></div>
+            <div class="glass-card stat-card"><h3>Peak Hour</h3><p id="peak-hours-display">—</p></div>
         </div>
 
-        <!-- ADDED: Registration Form Panel -->
-        <div id="register-container" class="glass-card hidden">
-            <h2 style="margin-bottom: 6px;">Create an Account</h2>
-            <p style="font-size: 0.72rem; opacity: 0.65; margin-bottom: 10px;">NEU Library — New User Registration</p>
-            <input type="text" id="reg-name"
-                placeholder="Full Name (Last Name, First Name)">
-            <input type="email" id="reg-email"
-                placeholder="Institutional Email (e.g. you@neu.edu.ph)">
-            <input type="text" id="reg-id"
-                placeholder="Student / Employee ID Number">
-            <select id="reg-college" onchange="updateRegCourses()">
-                <option value disabled selected>Select College</option>
-                <option value="COAc">College of Accountancy</option>
-                <option value="COAg">College of Agriculture</option>
-                <option value="CAS">College of Arts and Sciences</option>
-                <option value="CBA">College of Business Administration</option>
-                <option value="COC">College of Communication</option>
-                <option value="ICS">College of Informatics and Computing Studies</option>
-                <option value="COCC">College of Criminology</option>
-                <option value="CED">College of Education</option>
-                <option value="CEA">College of Engineering and Architecture</option>
-                <option value="CMT">College of Medical Technology</option>
-                <option value="CM">College of Midwifery</option>
-                <option value="COM">College of Music</option>
-                <option value="CON">College of Nursing</option>
-                <option value="CPT">College of Physical Therapy</option>
-                <option value="CRT">College of Respiratory Therapy</option>
-                <option value="SOIR">School of International Relations</option>
-                <option value="SGS">School of Graduate Studies</option>
-                <option value="STAFF">Staff</option>
-                <option value="Visitor">Visitor</option>
-            </select>
-
-            <select id="reg-course">
-                <option value disabled selected>Select Program / Course</option>
-            </select>
-
-            <input type="password" id="reg-pass" placeholder="Create Password">
-            <input type="password" id="reg-confirm"
-                placeholder="Confirm Password">
-            <button class="btn btn-primary" onclick="handleRegister()">Create
-                Account</button>
-
-            <p class="register-back" onclick="showLogin()">&#8592; Back to
-                Login</p>
-        </div>
-
-        <!-- END REGISTER PANEL -->
-        <div id="app-content">
-            <div class="welcome-section">
-                <h1 id="welcome-msg">Welcome to NEU Library!</h1>
-                <p id="view-title" style="opacity: 0.8;">Visitor Entry Form</p>
-            </div>
-
-            <div id="visitor-form" class="glass-card"
-                style="max-width: 600px; margin: 0 auto;">
-                <input type="text" id="v-name"
-                    placeholder="Full Name (Last Name, First Name)">
-                <input type="text" id="v-id"
-                    placeholder="Student/Employee ID Number">
-                <select id="college-select" onchange="updateCourses()">
-                    <option value disabled selected>Select College</option>
-                    <option value="COAc">College of Accountancy</option>
-                    <option value="COAg">College of Agriculture</option>
-                    <option value="CAS">College of Arts and Sciences</option>
-                    <option value="CBA">College of Business Administration</option>
-                    <option value="COC">College of Communication</option>
-                    <option value="ICS">College of Informatics and Computing Studies</option>
-                    <option value="COCC">College of Criminology</option>
-                    <option value="CED">College of Education</option>
-                    <option value="CEA">College of Engineering and Architecture</option>
-                    <option value="CMT">College of Medical Technology</option>
-                    <option value="CM">College of Midwifery</option>
-                    <option value="COM">College of Music</option>
-                    <option value="CON">College of Nursing</option>
-                    <option value="CPT">College of Physical Therapy</option>
-                    <option value="CRT">College of Respiratory Therapy</option>
-                    <option value="SOIR">School of International Relations</option>
-                    <option value="SGS">School of Graduate Studies</option>
-                    <option value="STAFF">Staff</option>
+        <div class="glass-card">
+            <div class="filter-group">
+                <input type="date" id="filter-date" title="Filter Date" onchange="loadAdminData()">
+                <select id="filter-college" onchange="loadAdminData()">
+                    <option value="all">All Colleges</option>
+                    <option value="COAc">COAc</option><option value="COAg">COAg</option>
+                    <option value="CAS">CAS</option><option value="CBA">CBA</option>
+                    <option value="COC">COC</option><option value="ICS">ICS</option>
+                    <option value="COCC">COCC</option><option value="CED">CED</option>
+                    <option value="CEA">CEA</option><option value="CMT">CMT</option>
+                    <option value="CM">CM</option><option value="COM">COM</option>
+                    <option value="CON">CON</option><option value="CPT">CPT</option>
+                    <option value="CRT">CRT</option><option value="SOIR">SOIR</option>
+                    <option value="SGS">SGS</option><option value="STAFF">STAFF</option>
                     <option value="Visitor">Visitor</option>
                 </select>
-
-                <select id="course-select">
-                    <option value disabled selected>Select
-                        Program/Course</option>
+                <select id="filter-reason" onchange="loadAdminData()">
+                    <option value="all">All Reasons</option>
+                    <option>Study Groups</option><option>Reading Books</option>
+                    <option>Research & Thesis</option><option>Borrowing & Returning Books</option>
+                    <option>Meeting</option><option>Visiting</option>
                 </select>
-
-                <select id="visitor-type">
-                    <option value disabled selected>Visitor Type</option>
-                    <option value="Student">Student</option>
-                    <option value="Faculty">Faculty</option>
-                    <option value="Staff">Staff</option>
-                    <option value="Visitors">Visitors</option>
-                </select>
-
-                <select id="v-reason">
-                    <option value disabled selected>Reason for Visit</option>
-                    <option>Study Groups</option>
-                    <option>Reading Books</option>
-                    <option>Research & Thesis</option>
-                    <option>Borrowing & Returning Books</option>
-                    <option>Meeting</option>
-                    <option>Visiting</option>
-                </select>
-
-                <button class="btn btn-primary" onclick="submitLog()">Submit
-                    Entry</button>
             </div>
 
-            <div id="admin-dashboard" class="hidden">
-                <span id="live-clock">Loading Time...</span>
-                <div class="stats-grid">
-                    <div class="glass-card stat-card"><h3>Total Visitors
-                            Today</h3><p id="total-v-count">1</p></div>
-                    <div class="glass-card stat-card"><h3>Current Date</h3><p
-                            id="current-date-display">--</p></div>
-                    <div class="glass-card stat-card"><h3>Peak Hours</h3><p>9:00
-                            AM - 11:00 AM</p></div>
-                </div>
-
-                <div class="glass-card">
-                    <div class="filter-group">
-                        <input type="date" title="Filter Date"
-                            onchange="filterTable()">
-                        <select id="filter-college"
-                            onchange="filterTable()"><option value="all">All
-                                Colleges</option><option
-                                value="ICS">ICS</option><option
-                                value="CAS">CAS</option><option
-                                value="CBA">CBA</option></select>
-                        <select id="filter-reason"
-                            onchange="filterTable()"><option value="all">All
-                                Reasons</option><option>Study
-                                Groups</option><option>Research &
-                                Thesis</option></select>
-                    </div>
-
-                    <div class="table-container">
-                        <h3 style="color: var(--neu-red);">Visitor Log Table</h3>
-                        <table id="visitor-table">
-                            <thead>
-                                <tr>
-                                    <th>Time-In</th>
-                                    <th>Full Name</th>
-                                    <th>ID Number</th>
-                                    <th>College</th>
-                                    <th>Program/Course</th>
-                                    <th>Type</th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                <tr data-college="ICS"
-                                    data-reason="Study Groups"><td>10:00AM</td><td>Felicity
-                                        Zoe O.
-                                        Villa</td><td>24-10338-722</td><td>ICS</td><td>BS
-                                        IT</td><td>Student</td></tr>
-                            </tbody>
-                        </table>
-
-                    </div>
-                    <div class="chart-box">
-                        <canvas id="statChart"></canvas>
-                    </div>
-
-                </div>
-                <button class="btn"
-                    style="background: rgba(255,255,255,0.2); color: white; width: auto; padding: 10px 20px; margin-top: 20px;"
-                    onclick="location.reload()">Logout Admin</button>
-
+            <div class="table-container">
+                <h3 style="color: var(--neu-red);">
+                    Visitor Log Manifest
+                    <span class="realtime-badge">● LIVE</span>
+                </h3>
+                <table id="visitor-table">
+                    <thead>
+                        <tr>
+                            <th>Time-In</th>
+                            <th>Full Name</th>
+                            <th>ID Number</th>
+                            <th>College</th>
+                            <th>Program/Course</th>
+                            <th>Type</th>
+                            <th>Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody id="visitor-tbody">
+                        <tr><td colspan="7" style="text-align:center;opacity:0.6;">Loading records...</td></tr>
+                    </tbody>
+                </table>
             </div>
 
+            <div class="chart-box">
+                <canvas id="statChart"></canvas>
+            </div>
         </div>
+        <button class="btn" style="background:rgba(255,255,255,0.2);color:white;width:auto;padding:10px 20px;margin-top:20px;" onclick="logoutAdmin()">Logout Admin</button>
+    </div>
+</div>
 
-        <script>
-        let selectedMode = 'regular';
-        const coursesByCollege = {
-            "COAc": ["Bachelor of Science in Accountancy", "Bachelor of Science in Accounting Information System"],
-            "COAg": ["Bachelor of Science in Agriculture"],
-            "CAS": ["Bachelor of Arts in Economics", "Bachelor of Arts in Political Science", "Bachelor of Science in Biology", "Bachelor of Science in Psychology", "Bachelor of Public Administration"],
-            "CBA": ["Bachelor of Science in Business Administration Major in Financial Management", "Bachelor of Science in Business Administration Major in Human Resource Development Management", "Bachelor of Science in Business Administration Major in Legal Management", "Bachelor of Science in Business Administration Major in Marketing Management", "Bachelor of Science in Entrepreneurship", "Bachelor of Science in Real Estate Management"],
-            "COC": ["Bachelor of Arts in Broadcasting", "Bachelor of Arts in Communication", "Bachelor of Arts in Journalism"],
-            "ICS": ["Bachelor of Library and Information Science", "Bachelor of Science in Information Technology", "Bachelor of Science in Computer Science", "Bachelor of Science in Entertainment and Multimedia Computing with Specialization in Digital Animation Technology", "Bachelor of Science in Entertainment and Multimedia Computing with Specialization in Game Development", "Bachelor of Science in Information System"],
-            "COCC":["Bachelor of Science in Criminology"],
-            "CED": ["Bachelor of Elementary Education", "Bachelor of Elementary Education with Specialization in Preschool Education", "Bachelor of Elementary Education with Specialization in Special Education", "Bachelor of Secondary Education Major in Music, Arts, and Physical Education", "Bachelor of Secondary Education Major in English", "Bachelor of Secondary Education Major in Filipino", "Bachelor of Secondary Education Major in Mathematics", "Bachelor of Secondary Education Major in Science", "Bachelor of Secondary Education Major in Social Studies", "Bachelor of Secondary Education Major in Technology and Livelihood Education"],
-            "CEA": ["Bachelor of Science in Architecture", "Bachelor of Science in Astronomy", "Bachelor of Science in Civil Engineering", "Bachelor of Science in Electrical Engineering", "Bachelor of Science in Electronics Engineering", "Bachelor of Science in Industrial Engineering", "Bachelor of Science in Mechanical Engineering"],
-            "CMT": ["Bachelor of Science in Medical Technology"],
-            "CM": ["Diploma in Midwifery"],
-            "COM": ["Bachelor of Music in Choral Conducting", "Bachelor of Music in Music Education", "Bachelor of Music in Piano", "Bachelor of Music in Voice"],
-            "CON": ["Bachelor of Science in Nursing"],
-            "CPT": ["Bachelor of Science in Physical Therapy"],
-            "CRT": ["Bachelor of Science in Respiratory Therapy"],
-            "SOIR": ["Bachelor of Arts in Foreign Service"],
-            "SGS": ["Doctor in Business Administration", "Master in Business Administration", "Master in Business Administration Major in Human Resource Management", "Master in Business Administration Major in Organizational Development", "Doctor of Philosophy in Education Major in Bilingual Education", "Doctor of Philosophy in Education Major in Early Childhood Education",
-                    "Doctor of Philosophy in Education Major in Educational Leadership", "Doctor of Philosophy in Education Major in Educational Management", "Doctor of Philosophy in Education Major in Guidance & Counseling", "Doctor of Philosophy in Education Major in Instructional Leadership", "Doctor of Philosophy in Education Major in Special Education and Inclusive Education", "Master of Arts in Education Major in Early Childhood Education",
-                    "Master of Arts in Education Major in Educational Management", "Master of Arts in Education Major in Educational Psychology", "Master of Arts in Education Major in Educational Technology", "Master of Arts in Education Major in Environmental Education", "Master of Arts in Education Major in Filipino", "Master of Arts in Education Major in Guidance and Counseling",
-                    "Master of Arts in Education Major in Language Education", "Master of Arts in Education Major in Mathematics Education", "Master of Arts in Education Major in Reading Education", "Master of Arts in Education Major in Science Education", "Master of Arts in Education Major in Social Science", "Master of Arts in Education Major in Special Education and Inclusive Education"
-                ], 
-            "STAFF": ["Staff"],
-            "Visitor": ["Visitor"] 
-        };
+<script>
+    // ── Supabase Init ──────────────────────────────────────────────
+    const SUPABASE_URL  = 'https://auxwdymnfmbqhdcufeoc.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1eHdkeW1uZm1icWhkY3VmZW9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MDI3MjYsImV4cCI6MjA4OTM3ODcyNn0.w4M7zdLwAHfyP1sMEbLS9E-oKOtV5mCkG9SRCic3H4M';
+    const { createClient } = supabase;
+    const db = createClient(SUPABASE_URL, SUPABASE_ANON);
 
+    // ── State ──────────────────────────────────────────────────────
+    let selectedMode   = 'regular';
+    let chartInstance  = null;
+    let realtimeChannel = null;
 
-        function switchLoginMode(mode) {
-            selectedMode = mode;
-            document.getElementById('btn-reg').classList.toggle('active', mode === 'regular');
-            document.getElementById('btn-adm').classList.toggle('active', mode === 'admin');
+    // ── Courses Map ────────────────────────────────────────────────
+    const coursesByCollege = {
+        "COAc": ["Bachelor of Science in Accountancy","Bachelor of Science in Accounting Information System"],
+        "COAg": ["Bachelor of Science in Agriculture"],
+        "CAS":  ["Bachelor of Arts in Economics","Bachelor of Arts in Political Science","Bachelor of Science in Biology","Bachelor of Science in Psychology","Bachelor of Public Administration"],
+        "CBA":  ["Bachelor of Science in Business Administration Major in Financial Management","Bachelor of Science in Business Administration Major in Human Resource Development Management","Bachelor of Science in Business Administration Major in Legal Management","Bachelor of Science in Business Administration Major in Marketing Management","Bachelor of Science in Entrepreneurship","Bachelor of Science in Real Estate Management"],
+        "COC":  ["Bachelor of Arts in Broadcasting","Bachelor of Arts in Communication","Bachelor of Arts in Journalism"],
+        "ICS":  ["Bachelor of Library and Information Science","Bachelor of Science in Information Technology","Bachelor of Science in Computer Science","Bachelor of Science in Entertainment and Multimedia Computing with Specialization in Digital Animation Technology","Bachelor of Science in Entertainment and Multimedia Computing with Specialization in Game Development","Bachelor of Science in Information System"],
+        "COCC": ["Bachelor of Science in Criminology"],
+        "CED":  ["Bachelor of Elementary Education","Bachelor of Elementary Education with Specialization in Preschool Education","Bachelor of Elementary Education with Specialization in Special Education","Bachelor of Secondary Education Major in Music, Arts, and Physical Education","Bachelor of Secondary Education Major in English","Bachelor of Secondary Education Major in Filipino","Bachelor of Secondary Education Major in Mathematics","Bachelor of Secondary Education Major in Science","Bachelor of Secondary Education Major in Social Studies","Bachelor of Secondary Education Major in Technology and Livelihood Education"],
+        "CEA":  ["Bachelor of Science in Architecture","Bachelor of Science in Astronomy","Bachelor of Science in Civil Engineering","Bachelor of Science in Electrical Engineering","Bachelor of Science in Electronics Engineering","Bachelor of Science in Industrial Engineering","Bachelor of Science in Mechanical Engineering"],
+        "CMT":  ["Bachelor of Science in Medical Technology"],
+        "CM":   ["Diploma in Midwifery"],
+        "COM":  ["Bachelor of Music in Choral Conducting","Bachelor of Music in Music Education","Bachelor of Music in Piano","Bachelor of Music in Voice"],
+        "CON":  ["Bachelor of Science in Nursing"],
+        "CPT":  ["Bachelor of Science in Physical Therapy"],
+        "CRT":  ["Bachelor of Science in Respiratory Therapy"],
+        "SOIR": ["Bachelor of Arts in Foreign Service"],
+        "SGS":  ["Doctor in Business Administration","Master in Business Administration","Master in Business Administration Major in Human Resource Management","Master in Business Administration Major in Organizational Development","Doctor of Philosophy in Education Major in Bilingual Education","Doctor of Philosophy in Education Major in Early Childhood Education","Doctor of Philosophy in Education Major in Educational Leadership","Doctor of Philosophy in Education Major in Educational Management","Doctor of Philosophy in Education Major in Guidance & Counseling","Doctor of Philosophy in Education Major in Instructional Leadership","Doctor of Philosophy in Education Major in Special Education and Inclusive Education","Master of Arts in Education Major in Early Childhood Education","Master of Arts in Education Major in Educational Management","Master of Arts in Education Major in Educational Psychology","Master of Arts in Education Major in Educational Technology","Master of Arts in Education Major in Environmental Education","Master of Arts in Education Major in Filipino","Master of Arts in Education Major in Guidance and Counseling","Master of Arts in Education Major in Language Education","Master of Arts in Education Major in Mathematics Education","Master of Arts in Education Major in Reading Education","Master of Arts in Education Major in Science Education","Master of Arts in Education Major in Social Science","Master of Arts in Education Major in Special Education and Inclusive Education"],
+        "STAFF":   ["Staff"],
+        "Visitor": ["Visitor"]
+    };
 
-            document.getElementById('login-title').innerText = mode === 'admin' ? "Admin Portal" : "New Era University Library Visitor Log";
-            document.getElementById('login-hint').innerText = mode === 'admin' ? "Admin credentials required." : "Enter your institutional email to proceed.";
+    // ── Helpers ────────────────────────────────────────────────────
+    function showLoading(msg = '⏳ Please wait...') {
+        const el = document.getElementById('loading-overlay');
+        el.textContent = msg; el.classList.remove('hidden');
+    }
+    function hideLoading() { document.getElementById('loading-overlay').classList.add('hidden'); }
 
-            // Hide register link in admin mode
-            document.getElementById('register-link-wrap').style.display = mode === 'admin' ? 'none' : '';
+    function showToast(msg, type = 'success') {
+        const t = document.createElement('div');
+        t.className = `toast ${type}`; t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 3500);
+    }
+
+    function todayPH() {
+        return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
+    }
+
+    function formatTimePH(isoString) {
+        return new Date(isoString).toLocaleTimeString('en-US', {
+            hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Manila'
+        });
+    }
+
+    // ── UI ─────────────────────────────────────────────────────────
+    function switchLoginMode(mode) {
+        selectedMode = mode;
+        document.getElementById('btn-reg').classList.toggle('active', mode === 'regular');
+        document.getElementById('btn-adm').classList.toggle('active', mode === 'admin');
+        document.getElementById('login-title').innerText = mode === 'admin' ? 'Admin Portal' : 'New Era University Library Visitor Log';
+        document.getElementById('login-hint').innerText  = mode === 'admin' ? 'Admin credentials required.' : 'Enter your institutional email to proceed.';
+        document.getElementById('register-link-wrap').style.display = mode === 'admin' ? 'none' : '';
+    }
+
+    function showRegister() {
+        document.getElementById('login-container').classList.add('hidden');
+        document.getElementById('register-container').classList.remove('hidden');
+        document.getElementById('top-switcher').style.display = 'none';
+    }
+
+    function showLogin() {
+        document.getElementById('register-container').classList.add('hidden');
+        document.getElementById('login-container').classList.remove('hidden');
+        document.getElementById('top-switcher').style.display = '';
+    }
+
+    function updateTime() {
+        const now = new Date();
+        const clockEl = document.getElementById('live-clock');
+        if (clockEl) {
+            clockEl.innerText = 'Philippine Standard Time: ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true, timeZone: 'Asia/Manila' });
+            document.getElementById('current-date-display').innerText = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'Asia/Manila' });
+        }
+    }
+    setInterval(updateTime, 1000);
+
+    function updateCourses() {
+        const college = document.getElementById('college-select').value;
+        const sel = document.getElementById('course-select');
+        sel.innerHTML = '<option value="" disabled selected>Select Program/Course</option>';
+        (coursesByCollege[college] || []).forEach(c => {
+            const o = document.createElement('option'); o.value = o.textContent = c; sel.appendChild(o);
+        });
+    }
+
+    function updateRegCourses() {
+        const college = document.getElementById('reg-college').value;
+        const sel = document.getElementById('reg-course');
+        sel.innerHTML = '<option value="" disabled selected>Select Program / Course</option>';
+        (coursesByCollege[college] || []).forEach(c => {
+            const o = document.createElement('option'); o.value = o.textContent = c; sel.appendChild(o);
+        });
+    }
+
+    // ── Register ───────────────────────────────────────────────────
+    async function handleRegister() {
+        const name    = document.getElementById('reg-name').value.trim();
+        const email   = document.getElementById('reg-email').value.trim().toLowerCase();
+        const id_num  = document.getElementById('reg-id').value.trim();
+        const college = document.getElementById('reg-college').value;
+        const course  = document.getElementById('reg-course').value;
+        const pass    = document.getElementById('reg-pass').value;
+        const confirm = document.getElementById('reg-confirm').value;
+
+        if (!name || !email || !id_num || !college || !course || !pass || !confirm) {
+            showToast('Please fill in all fields.', 'error'); return;
+        }
+        if (!email.endsWith('@neu.edu.ph')) {
+            showToast('Please use your institutional email (@neu.edu.ph).', 'error'); return;
+        }
+        if (pass.length < 6) {
+            showToast('Password must be at least 6 characters.', 'error'); return;
+        }
+        if (pass !== confirm) {
+            showToast('Passwords do not match.', 'error'); return;
         }
 
-        function updateTime() {
-            const now = new Date();
-            const options = { hour: '2-digit', minute: '2-digit', hour12: true };
-            const dateOptions = { month: 'long', day: 'numeric', year: 'numeric' };
-            const clockEl = document.getElementById('live-clock');
-            if(clockEl) {
-                clockEl.innerText = "Philippine Standard Time: " + now.toLocaleTimeString('en-US', options);
-                document.getElementById('current-date-display').innerText = now.toLocaleDateString('en-US', dateOptions);
+        const btn = document.getElementById('register-btn');
+        btn.disabled = true; btn.textContent = 'Creating account…';
+        showLoading('Creating your account...');
+
+        // 1. Create auth user in Supabase
+        const { data, error } = await db.auth.signUp({
+            email,
+            password: pass,
+            options: {
+                data: { full_name: name, id_number: id_num, college, course }
+            }
+        });
+
+        if (error) {
+            hideLoading(); btn.disabled = false; btn.textContent = 'Create Account';
+            showToast('Registration failed: ' + error.message, 'error'); return;
+        }
+
+        // 2. Save profile info to user_profiles table
+        const userId = data.user?.id;
+        if (userId) {
+            await db.from('user_profiles').insert([{
+                id: userId, full_name: name, email,
+                id_number: id_num, college, course
+            }]);
+        }
+
+        hideLoading(); btn.disabled = false; btn.textContent = 'Create Account';
+        showToast(`Account created! Welcome, ${name}. You may now log in. ✅`);
+
+        // Clear form & go back to login
+        ['reg-name','reg-email','reg-id','reg-pass','reg-confirm'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('reg-college').value = '';
+        document.getElementById('reg-course').innerHTML = '<option value="" disabled selected>Select Program / Course</option>';
+        setTimeout(showLogin, 1500);
+    }
+
+    // ── Login ──────────────────────────────────────────────────────
+    async function handleLogin() {
+        const email = document.getElementById('email-input').value.trim().toLowerCase();
+        const pass  = document.getElementById('pass-input').value;
+        if (!email || !pass) { showToast('Please enter credentials.', 'error'); return; }
+
+        const btn = document.getElementById('login-btn');
+        btn.disabled = true; btn.textContent = 'Logging in…';
+        showLoading('Authenticating...');
+
+        const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
+        hideLoading(); btn.disabled = false; btn.textContent = 'Login';
+
+        if (error || !data.user) { showToast('Invalid email or password.', 'error'); return; }
+
+        if (selectedMode === 'admin') {
+            // Check admin_users table
+            const { data: adminRow } = await db.from('admin_users').select('email').eq('email', email).single();
+            if (!adminRow) {
+                showToast('You do not have admin privileges.', 'error');
+                await db.auth.signOut(); return;
+            }
+            enterAdmin();
+        } else {
+            // Fetch profile for pre-fill
+            const { data: profile } = await db.from('user_profiles').select('*').eq('id', data.user.id).single();
+            enterRegular(data.user.email, profile);
+        }
+    }
+
+    function enterRegular(email, profile) {
+        document.getElementById('login-container').classList.add('hidden');
+        document.getElementById('app-content').style.display = 'block';
+        document.getElementById('visitor-form').classList.remove('hidden');
+        document.getElementById('admin-dashboard').classList.add('hidden');
+        document.getElementById('welcome-msg').innerText = `Welcome, ${profile?.full_name || email}!`;
+        document.getElementById('view-title').innerText  = 'Visitor Entry Form';
+
+        // Pre-fill name and ID from profile
+        if (profile) {
+            document.getElementById('v-name').value = profile.full_name || '';
+            document.getElementById('v-id').value   = profile.id_number || '';
+
+            // Pre-select college & course
+            if (profile.college) {
+                document.getElementById('college-select').value = profile.college;
+                updateCourses();
+                setTimeout(() => {
+                    if (profile.course) document.getElementById('course-select').value = profile.course;
+                }, 100);
             }
         }
+    }
 
-        setInterval(updateTime, 1000);
+    function enterAdmin() {
+        document.getElementById('login-container').classList.add('hidden');
+        document.getElementById('app-content').style.display = 'block';
+        document.getElementById('visitor-form').classList.add('hidden');
+        document.getElementById('admin-dashboard').classList.remove('hidden');
+        document.getElementById('view-title').innerText  = 'Admin Analytics Dashboard';
+        document.getElementById('welcome-msg').innerText = 'System Administrator Access';
+        document.getElementById('top-switcher').style.display = 'none';
+        document.getElementById('filter-date').value = todayPH();
+        updateTime();
+        loadAdminData();
+        subscribeRealtime();
+    }
 
-        function updateCourses() {
-            const college = document.getElementById('college-select').value;
-            const courseSelect = document.getElementById('course-select');
-            courseSelect.innerHTML = '<option value="" disabled selected>Select Program/Course</option>';
+    async function logoutUser()  { await db.auth.signOut(); location.reload(); }
+    async function logoutAdmin() {
+        await db.auth.signOut();
+        if (realtimeChannel) db.removeChannel(realtimeChannel);
+        location.reload();
+    }
 
-            if (coursesByCollege[college]) {
-                coursesByCollege[college].forEach(course => {
-                    let opt = document.createElement('option');
-                    opt.value = course; opt.innerHTML = course;
-                    courseSelect.appendChild(opt);
-                });
-            }
+    // ── Submit Visitor Log ─────────────────────────────────────────
+    async function submitLog() {
+        const name    = document.getElementById('v-name').value.trim();
+        const id_num  = document.getElementById('v-id').value.trim();
+        const college = document.getElementById('college-select').value;
+        const course  = document.getElementById('course-select').value;
+        const type    = document.getElementById('visitor-type').value;
+        const reason  = document.getElementById('v-reason').value;
+
+        if (!name || !id_num || !college || !course || !type || !reason) {
+            showToast('Please complete all fields.', 'error'); return;
         }
 
-        function handleLogin() {
-            const email = document.getElementById('email-input').value.toLowerCase();
-            const pass = document.getElementById('pass-input').value;
-            if (!email || !pass) { alert("Please enter credentials."); return; }
+        const btn = document.getElementById('submit-btn');
+        btn.disabled = true; btn.textContent = 'Submitting…';
+        showLoading('Saving your entry...');
 
-            if (selectedMode === 'admin') {
-                if (email === "jcesperanza@neu.edu.ph") {
-                    document.getElementById('login-container').classList.add('hidden');
-                    document.getElementById('app-content').style.display = 'block';
-                    document.getElementById('visitor-form').classList.add('hidden');
-                    document.getElementById('admin-dashboard').classList.remove('hidden');
-                    document.getElementById('view-title').innerText = "Admin Analytics Dashboard";
-                    document.getElementById('welcome-msg').innerText = "System Administrator Access";
-                    document.getElementById('top-switcher').style.display = 'none';
-                    initChart();
-                    updateTime();
-                } else {
-                    alert("Unauthorized Admin Access.");
-                }
+        const { error } = await db.from('visitor_logs').insert([{
+            full_name: name, id_number: id_num,
+            college, course, visitor_type: type, reason
+        }]);
 
-            } else {
-                document.getElementById('login-container').classList.add('hidden');
-                document.getElementById('app-content').style.display = 'block';
-                document.getElementById('visitor-form').classList.remove('hidden');
-                document.getElementById('admin-dashboard').classList.add('hidden');
-            }
+        hideLoading(); btn.disabled = false; btn.textContent = 'Submit Entry';
+
+        if (error) { showToast('Error: ' + error.message, 'error'); return; }
+
+        showToast(`Entry saved! Welcome, ${name} 🎉`);
+        document.getElementById('visitor-type').value = '';
+        document.getElementById('v-reason').value = '';
+    }
+
+    // ── Admin Data ─────────────────────────────────────────────────
+    async function loadAdminData() {
+        showLoading('Loading dashboard...');
+        const dateVal = document.getElementById('filter-date').value || todayPH();
+        const college = document.getElementById('filter-college').value;
+        const reason  = document.getElementById('filter-reason').value;
+
+        let query = db.from('visitor_logs').select('*')
+            .gte('time_in', dateVal + 'T00:00:00')
+            .lte('time_in', dateVal + 'T23:59:59')
+            .order('time_in', { ascending: false });
+
+        if (college !== 'all') query = query.eq('college', college);
+        if (reason  !== 'all') query = query.eq('reason', reason);
+
+        const { data, error } = await query;
+        hideLoading();
+
+        if (error) { showToast('Error loading data: ' + error.message, 'error'); return; }
+
+        renderTable(data || []);
+        renderStats(data || []);
+        renderChart(data || []);
+    }
+
+    function renderTable(rows) {
+        const tbody = document.getElementById('visitor-tbody');
+        if (!rows.length) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;opacity:0.6;">No records found.</td></tr>';
+            return;
         }
+        tbody.innerHTML = rows.map(r => `
+            <tr>
+                <td>${formatTimePH(r.time_in)}</td>
+                <td>${r.full_name}</td>
+                <td>${r.id_number}</td>
+                <td>${r.college}</td>
+                <td>${r.course}</td>
+                <td>${r.visitor_type}</td>
+                <td>${r.reason}</td>
+            </tr>`).join('');
+    }
 
+    function renderStats(rows) {
+        document.getElementById('total-v-count').innerText = rows.length;
+        const hourCounts = {};
+        rows.forEach(r => {
+            const h = new Date(r.time_in).getHours();
+            hourCounts[h] = (hourCounts[h] || 0) + 1;
+        });
+        const peak = Object.keys(hourCounts).sort((a,b) => hourCounts[b]-hourCounts[a])[0];
+        document.getElementById('peak-hours-display').innerText = peak !== undefined
+            ? `${parseInt(peak) % 12 || 12}:00 ${parseInt(peak) < 12 ? 'AM' : 'PM'}` : '—';
+    }
 
-        function submitLog() {
-            const name = document.getElementById('v-name').value;
-            const id = document.getElementById('v-id').value;
-            const college = document.getElementById('college-select').value;
-            const course = document.getElementById('course-select').value;
-            const type = document.getElementById('visitor-type').value;
-            const reason = document.getElementById('v-reason').value;
-
-            if(!name || !id || !college || !course) { alert("Complete all fields."); return; }
-
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-            const table = document.getElementById('visitor-table').getElementsByTagName('tbody')[0];
-            const newRow = table.insertRow(0);
-
-            newRow.setAttribute('data-college', college);
-            newRow.setAttribute('data-reason', reason);
-            newRow.innerHTML = `<td>${timeStr}</td><td>${name}</td><td>${id}</td><td>${college}</td><td>${course}</td><td>${type}</td>`;
-
-            
-            let currentCount = parseInt(document.getElementById('total-v-count').innerText);
-            document.getElementById('total-v-count').innerText = currentCount + 1;
-
-            alert("Success! Welcome, " + name);
-
-            // Reset fields
-            document.getElementById('v-name').value = ""; 
-            document.getElementById('v-id').value = "";
+    function renderChart(rows) {
+        const ctx = document.getElementById('statChart').getContext('2d');
+        if (chartInstance) chartInstance.destroy();
+        const hourLabels = [], hourData = [];
+        for (let h = 7; h <= 19; h++) {
+            hourLabels.push(`${h % 12 || 12}:00 ${h < 12 ? 'AM' : 'PM'}`);
+            hourData.push(rows.filter(r => new Date(r.time_in).getHours() === h).length);
         }
-
-        function filterTable() {
-            const collegeFilter = document.getElementById('filter-college').value;
-            const reasonFilter = document.getElementById('filter-reason').value;
-            const rows = document.querySelectorAll('#visitor-table tbody tr');
-
-            rows.forEach(row => {
-                const colMatch = collegeFilter === 'all' || row.getAttribute('data-college') === collegeFilter;
-                const reasonMatch = reasonFilter === 'all' || row.getAttribute('data-reason') === reasonFilter;
-                row.style.display = (colMatch && reasonMatch) ? '' : 'none';
-            });
-        }
-
-        function initChart() {
-            const ctx = document.getElementById('statChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['08:00', '10:00', '12:00', '14:00', '16:00'],
-                    datasets: [{
-                        label: 'Hourly Volume',
-                        data: [5, 25, 45, 30, 15],
-                        borderColor: '#00d4ff',
-                        backgroundColor: 'rgba(0, 212, 255, 0.2)',
-                        fill: true, tension: 0.4
-                    }]
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: hourLabels,
+                datasets: [{ label: 'Hourly Visitors', data: hourData, borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.2)', fill: true, tension: 0.4 }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    y: { ticks: { color: 'white', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                    x: { ticks: { color: 'white' },             grid: { color: 'rgba(255,255,255,0.1)' } }
                 },
-
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    scales: {
-                        y: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } },
-                        x: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } }
-                    },
-
-                    plugins: { legend: { labels: { color: 'white' } } }
-                }
-            });
-        }
-
-
-        /* ── ADDED: Register functions ── */
-        function showRegister() {
-            document.getElementById('login-container').classList.add('hidden');
-            document.getElementById('register-container').classList.remove('hidden');
-            document.getElementById('top-switcher').style.display = 'none';
-        }
-
-        function showLogin() {
-            document.getElementById('register-container').classList.add('hidden');
-            document.getElementById('login-container').classList.remove('hidden');
-            document.getElementById('top-switcher').style.display = '';
-        }
-
-        function updateRegCourses() {
-            const college = document.getElementById('reg-college').value;
-            const courseSelect = document.getElementById('reg-course');
-            courseSelect.innerHTML = '<option value="" disabled selected>Select Program / Course</option>';
-
-            if (coursesByCollege[college]) {
-                coursesByCollege[college].forEach(course => {
-                    let opt = document.createElement('option');
-                    opt.value = course; opt.textContent = course;
-                    courseSelect.appendChild(opt);
-                });
+                plugins: { legend: { labels: { color: 'white' } } }
             }
-        }
+        });
+    }
 
-        function handleRegister() {
-            const name    = document.getElementById('reg-name').value.trim();
-            const email   = document.getElementById('reg-email').value.trim().toLowerCase();
-            const id      = document.getElementById('reg-id').value.trim();
-            const college = document.getElementById('reg-college').value;
-            const course  = document.getElementById('reg-course').value;
-            const pass    = document.getElementById('reg-pass').value;
-            const confirm = document.getElementById('reg-confirm').value;
-
-            if (!name || !email || !id || !college || !course || !pass || !confirm) {
-                alert("Please fill in all fields."); return;
-            }
-
-            if (!email.endsWith('@neu.edu.ph')) {
-                alert("Please use your institutional email (@neu.edu.ph)."); return;
-            }
-
-            if (pass.length < 6) {
-                alert("Password must be at least 6 characters."); return;
-            }
-
-            if (pass !== confirm) {
-                alert("Passwords do not match."); return;
-            }
-
-            alert("Account created successfully!\nWelcome, " + name + ".\nYou may now log in with your credentials.");
-
-            showLogin();
-
-        }
-
-        /* ── END ADDED ── */
-    </script>
-    </body>
+    // ── Realtime ───────────────────────────────────────────────────
+    function subscribeRealtime() {
+        realtimeChannel = db.channel('visitor_logs_changes')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'visitor_logs' }, payload => {
+                showToast(`New visitor logged: ${payload.new.full_name}`);
+                loadAdminData();
+            })
+            .subscribe();
+    }
+</script>
+</body>
 </html>
