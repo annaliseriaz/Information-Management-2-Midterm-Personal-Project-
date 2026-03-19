@@ -15,4 +15,7 @@ password for admin acc in this library visitor log app (jcesperanza@neu.edu.ph) 
 
 
 -------------------------
+If says it is dangerous site, just click the "details" and click "this unsafe site"
+
+-----------------------
 © 2026 NEU Library Visitor Log. All rights reserved.
