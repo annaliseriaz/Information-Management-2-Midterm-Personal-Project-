@@ -2,7 +2,7 @@
 
 A digital visitor login system for the **New Era University Library**, designed to streamline and record the entry of students, faculty, and guests into the library premises.
 
-> 🔗 https://information-management-2-midterm-pe.vercel.app/
+> 🔗 https://villa-midterm-project-im-neulibrarylog.vercel.app/
 
 **Features**
 - ✅ **Visitor Login Form** — Captures visitor name, ID number (e.g. 12-3456-789), purpose of visit, and time of entry
