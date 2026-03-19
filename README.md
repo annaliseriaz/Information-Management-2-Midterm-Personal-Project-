@@ -4,6 +4,8 @@ A digital visitor login system for the **New Era University Library**, designed 
 
 > 🔗 https://information-management-2-midterm-pe.vercel.app/
 
+password for admin acc in this library visitor log app (jcesperanza@neu.edu.ph) : adminjcesperanza
+
 
 **Features**
 - ✅ **Visitor Login Form** — Captures visitor name, ID number (e.g. 12-3456-789), purpose of visit, and time of entry
