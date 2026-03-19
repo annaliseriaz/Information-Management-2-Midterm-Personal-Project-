@@ -209,7 +209,7 @@ th { background: rgba(255,255,255,0.1); color: var(--neu-red); text-transform: u
     transition: 0.3s;
 }
 .btn-google:hover { background: #f1f1f1; }
- 
+
 .divider {
     display: flex;
     align-items: center;
@@ -225,3 +225,17 @@ th { background: rgba(255,255,255,0.1); color: var(--neu-red); text-transform: u
     height: 1px;
     background: rgba(255,255,255,0.35);
 }
+
+/* ✅ ADDED: Download PDF button */
+.btn-download {
+    background: linear-gradient(135deg, #00b894, #00cec9);
+    color: white;
+    width: auto;
+    padding: 12px 28px;
+    margin-top: 16px;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+    border-radius: 8px;
+    display: inline-block;
+}
+.btn-download:hover { background: linear-gradient(135deg, #00a381, #00b5b8); }
