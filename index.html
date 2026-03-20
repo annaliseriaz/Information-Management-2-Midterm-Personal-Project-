@@ -50,7 +50,7 @@
         <option value="CAS">College of Arts and Sciences</option>
         <option value="CBA">College of Business Administration</option>
         <option value="COC">College of Communication</option>
-        <option value="ICS">College of Informatics and Computing Studies</option>
+        <option value="CICS">College of Informatics and Computing Studies</option>
         <option value="COCC">College of Criminology</option>
         <option value="CED">College of Education</option>
         <option value="CEA">College of Engineering and Architecture</option>
@@ -93,7 +93,7 @@
             <option value="CAS">College of Arts and Sciences</option>
             <option value="CBA">College of Business Administration</option>
             <option value="COC">College of Communication</option>
-            <option value="ICS">College of Informatics and Computing Studies</option>
+            <option value="CICS">College of Informatics and Computing Studies</option>
             <option value="COCC">College of Criminology</option>
             <option value="CED">College of Education</option>
             <option value="CEA">College of Engineering and Architecture</option>
@@ -151,7 +151,7 @@
                     <option value="all">All Colleges</option>
                     <option value="COAc">COAc</option><option value="COAg">COAg</option>
                     <option value="CAS">CAS</option><option value="CBA">CBA</option>
-                    <option value="COC">COC</option><option value="ICS">ICS</option>
+                    <option value="COC">COC</option><option value="CICS">CICS</option>
                     <option value="COCC">COCC</option><option value="CED">CED</option>
                     <option value="CEA">CEA</option><option value="CMT">CMT</option>
                     <option value="CM">CM</option><option value="COM">COM</option>
@@ -162,9 +162,13 @@
                 </select>
                 <select id="filter-reason" onchange="loadAdminData()">
                     <option value="all">All Reasons</option>
-                    <option>Study Groups</option><option>Reading Books</option>
-                    <option>Research & Thesis</option><option>Borrowing & Returning Books</option>
-                    <option>Meeting</option><option>Visiting</option>
+                    <option>Study Groups</option>
+                    <option>Reading Books</option>
+                    <option>Use of Computer</option>
+                    <option>Research & Thesis</option>
+                    <option>Borrowing & Returning Books</option>
+                    <option>Meeting</option>
+                    <option>Visiting</option>
                 </select>
             </div>
 
@@ -196,7 +200,7 @@
             </div>
         </div>
 
-        <!-- ✅ ADDED: Download PDF button -->
+        <!-- ADDED: Download PDF button -->
         <button class="btn btn-download" onclick="downloadPDF()">⬇ Download Records as PDF</button>
 
         <button class="btn" style="background:rgba(255,255,255,0.2);color:white;width:auto;padding:10px 20px;margin-top:20px;" onclick="logoutAdmin()">Logout Admin</button>
@@ -206,7 +210,7 @@
 <!-- Scripts: load libraries first, then app.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- ✅ ADDED: jsPDF for PDF download feature -->
+<!-- ADDED: jsPDF for PDF download feature -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="app.js"></script>
