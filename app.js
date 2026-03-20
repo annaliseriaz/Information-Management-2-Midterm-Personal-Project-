@@ -1,34 +1,68 @@
-// ── Supabase Init ──────────────────────────────────────────────
-const SUPABASE_URL  = 'https://auxwdymnfmbqhdcufeoc.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1eHdkeW1uZm1icWhkY3VmZW9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MDI3MjYsImV4cCI6MjA4OTM3ODcyNn0.w4M7zdLwAHfyP1sMEbLS9E-oKOtV5mCkG9SRCic3H4M';
+// Use environment variables or a config file that isn't hardcoded if possible
+const SUPABASE_URL = 'https://auxwdymnfmbqhdcufeoc.supabase.co';
+const SUPABASE_ANON = 'SUPABASE_ANON=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF1eHdkeW1uZm1icWhkY3VmZW9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MDI3MjYsImV4cCI6MjA4OTM3ODcyNn0.w4M7zdLwAHfyP1sMEbLS9E-oKOtV5mCkG9SRCic3H4M'; // Move this to Vercel Env Vars!
+
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON);
 
-// ── State ──────────────────────────────────────────────────────
-let selectedMode    = 'regular';
-let chartInstance   = null;
-let realtimeChannel = null;
+async function handleLogin() {
+    const email = document.getElementById('email-input').value.trim().toLowerCase();
+    const pass = document.getElementById('pass-input').value;
+
+    if (!email || !pass) {
+        showToast('Please enter credentials.', 'error');
+        return;
+    }
+
+    showLoading('Authenticating...');
+    
+    // 1. Authenticate with Supabase Auth
+    const { data, error } = await db.auth.signInWithPassword({
+        email: email,
+        password: pass,
+    });
+
+    if (error) {
+        hideLoading();
+        showToast(error.message, 'error');
+        return;
+    }
+
+    // 2. Fetch User Profile to check if Admin or Regular
+    const { data: profile, error: profileError } = await db
+        .from('user_profiles')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+
+    hideLoading();
+
+    if (profile) {
+        // Direct the user based on their profile data
+        setupUserSession(profile); 
+    }
+}
 
 // ── Courses Map ────────────────────────────────────────────────
 const coursesByCollege = {
-    "COAc": ["Bachelor of Science in Accountancy","Bachelor of Science in Accounting Information System"],
+    "COAc": ["Bachelor of Science in Accountancy", "Bachelor of Science in Accounting Information System"],
     "COAg": ["Bachelor of Science in Agriculture"],
-    "CAS":  ["Bachelor of Arts in Economics","Bachelor of Arts in Political Science","Bachelor of Science in Biology","Bachelor of Science in Psychology","Bachelor of Public Administration"],
-    "CBA":  ["Bachelor of Science in Business Administration Major in Financial Management","Bachelor of Science in Business Administration Major in Human Resource Development Management","Bachelor of Science in Business Administration Major in Legal Management","Bachelor of Science in Business Administration Major in Marketing Management","Bachelor of Science in Entrepreneurship","Bachelor of Science in Real Estate Management"],
-    "COC":  ["Bachelor of Arts in Broadcasting","Bachelor of Arts in Communication","Bachelor of Arts in Journalism"],
-    "CICS":  ["Bachelor of Library and Information Science","Bachelor of Science in Information Technology","Bachelor of Science in Computer Science","Bachelor of Science in Entertainment and Multimedia Computing with Specialization in Digital Animation Technology","Bachelor of Science in Entertainment and Multimedia Computing with Specialization in Game Development","Bachelor of Science in Information System"],
+    "CAS": ["Bachelor of Arts in Economics", "Bachelor of Arts in Political Science", "Bachelor of Science in Biology", "Bachelor of Science in Psychology", "Bachelor of Public Administration"],
+    "CBA": ["Bachelor of Science in Business Administration Major in Financial Management", "Bachelor of Science in Business Administration Major in Human Resource Development Management", "Bachelor of Science in Business Administration Major in Legal Management", "Bachelor of Science in Business Administration Major in Marketing Management", "Bachelor of Science in Entrepreneurship", "Bachelor of Science in Real Estate Management"],
+    "COC": ["Bachelor of Arts in Broadcasting", "Bachelor of Arts in Communication", "Bachelor of Arts in Journalism"],
+    "CICS": ["Bachelor of Library and Information Science", "Bachelor of Science in Information Technology", "Bachelor of Science in Computer Science", "Bachelor of Science in Entertainment and Multimedia Computing with Specialization in Digital Animation Technology", "Bachelor of Science in Entertainment and Multimedia Computing with Specialization in Game Development", "Bachelor of Science in Information System"],
     "COCC": ["Bachelor of Science in Criminology"],
-    "CED":  ["Bachelor of Elementary Education","Bachelor of Elementary Education with Specialization in Preschool Education","Bachelor of Elementary Education with Specialization in Special Education","Bachelor of Secondary Education Major in Music, Arts, and Physical Education","Bachelor of Secondary Education Major in English","Bachelor of Secondary Education Major in Filipino","Bachelor of Secondary Education Major in Mathematics","Bachelor of Secondary Education Major in Science","Bachelor of Secondary Education Major in Social Studies","Bachelor of Secondary Education Major in Technology and Livelihood Education"],
-    "CEA":  ["Bachelor of Science in Architecture","Bachelor of Science in Astronomy","Bachelor of Science in Civil Engineering","Bachelor of Science in Electrical Engineering","Bachelor of Science in Electronics Engineering","Bachelor of Science in Industrial Engineering","Bachelor of Science in Mechanical Engineering"],
-    "CMT":  ["Bachelor of Science in Medical Technology"],
-    "CM":   ["Diploma in Midwifery"],
-    "COM":  ["Bachelor of Music in Choral Conducting","Bachelor of Music in Music Education","Bachelor of Music in Piano","Bachelor of Music in Voice"],
-    "CON":  ["Bachelor of Science in Nursing"],
-    "CPT":  ["Bachelor of Science in Physical Therapy"],
-    "CRT":  ["Bachelor of Science in Respiratory Therapy"],
+    "CED": ["Bachelor of Elementary Education", "Bachelor of Elementary Education with Specialization in Preschool Education", "Bachelor of Elementary Education with Specialization in Special Education", "Bachelor of Secondary Education Major in Music, Arts, and Physical Education", "Bachelor of Secondary Education Major in English", "Bachelor of Secondary Education Major in Filipino", "Bachelor of Secondary Education Major in Mathematics", "Bachelor of Secondary Education Major in Science", "Bachelor of Secondary Education Major in Social Studies", "Bachelor of Secondary Education Major in Technology and Livelihood Education"],
+    "CEA": ["Bachelor of Science in Architecture", "Bachelor of Science in Astronomy", "Bachelor of Science in Civil Engineering", "Bachelor of Science in Electrical Engineering", "Bachelor of Science in Electronics Engineering", "Bachelor of Science in Industrial Engineering", "Bachelor of Science in Mechanical Engineering"],
+    "CMT": ["Bachelor of Science in Medical Technology"],
+    "CM": ["Diploma in Midwifery"],
+    "COM": ["Bachelor of Music in Choral Conducting", "Bachelor of Music in Music Education", "Bachelor of Music in Piano", "Bachelor of Music in Voice"],
+    "CON": ["Bachelor of Science in Nursing"],
+    "CPT": ["Bachelor of Science in Physical Therapy"],
+    "CRT": ["Bachelor of Science in Respiratory Therapy"],
     "SOIR": ["Bachelor of Arts in Foreign Service"],
-    "SGS":  ["Doctor in Business Administration","Master in Business Administration","Master in Business Administration Major in Human Resource Management","Master in Business Administration Major in Organizational Development","Doctor of Philosophy in Education Major in Bilingual Education","Doctor of Philosophy in Education Major in Early Childhood Education","Doctor of Philosophy in Education Major in Educational Leadership","Doctor of Philosophy in Education Major in Educational Management","Doctor of Philosophy in Education Major in Guidance & Counseling","Doctor of Philosophy in Education Major in Instructional Leadership","Doctor of Philosophy in Education Major in Special Education and Inclusive Education","Master of Arts in Education Major in Early Childhood Education","Master of Arts in Education Major in Educational Management","Master of Arts in Education Major in Educational Psychology","Master of Arts in Education Major in Educational Technology","Master of Arts in Education Major in Environmental Education","Master of Arts in Education Major in Filipino","Master of Arts in Education Major in Guidance and Counseling","Master of Arts in Education Major in Language Education","Master of Arts in Education Major in Mathematics Education","Master of Arts in Education Major in Reading Education","Master of Arts in Education Major in Science Education","Master of Arts in Education Major in Social Science","Master of Arts in Education Major in Special Education and Inclusive Education"],
-    "STAFF":   ["Staff"],
+    "SGS": ["Doctor in Business Administration", "Master in Business Administration", "Master in Business Administration Major in Human Resource Management", "Master in Business Administration Major in Organizational Development", "Doctor of Philosophy in Education Major in Bilingual Education", "Doctor of Philosophy in Education Major in Early Childhood Education", "Doctor of Philosophy in Education Major in Educational Leadership", "Doctor of Philosophy in Education Major in Educational Management", "Doctor of Philosophy in Education Major in Guidance & Counseling", "Doctor of Philosophy in Education Major in Instructional Leadership", "Doctor of Philosophy in Education Major in Special Education and Inclusive Education", "Master of Arts in Education Major in Early Childhood Education", "Master of Arts in Education Major in Educational Management", "Master of Arts in Education Major in Educational Psychology", "Master of Arts in Education Major in Educational Technology", "Master of Arts in Education Major in Environmental Education", "Master of Arts in Education Major in Filipino", "Master of Arts in Education Major in Guidance and Counseling", "Master of Arts in Education Major in Language Education", "Master of Arts in Education Major in Mathematics Education", "Master of Arts in Education Major in Reading Education", "Master of Arts in Education Major in Science Education", "Master of Arts in Education Major in Social Science", "Master of Arts in Education Major in Special Education and Inclusive Education"],
+    "STAFF": ["Staff"],
     "Visitor": ["Visitor"]
 };
 
@@ -67,7 +101,7 @@ function switchLoginMode(mode) {
     document.getElementById('btn-reg').classList.toggle('active', mode === 'regular');
     document.getElementById('btn-adm').classList.toggle('active', mode === 'admin');
     document.getElementById('login-title').innerText = mode === 'admin' ? 'Admin Portal' : 'New Era University Library Visitor Log';
-    document.getElementById('login-hint').innerText  = mode === 'admin' ? 'Admin credentials required.' : 'Enter your institutional email to proceed.';
+    document.getElementById('login-hint').innerText = mode === 'admin' ? 'Admin credentials required.' : 'Enter your institutional email to proceed.';
     document.getElementById('register-link-wrap').style.display = mode === 'admin' ? 'none' : '';
 }
 
@@ -121,12 +155,12 @@ function updateRegCourses() {
 
 // ── Register ───────────────────────────────────────────────────
 async function handleRegister() {
-    const name    = document.getElementById('reg-name').value.trim();
-    const email   = document.getElementById('reg-email').value.trim().toLowerCase();
-    const id_num  = document.getElementById('reg-id').value.trim();
+    const name = document.getElementById('reg-name').value.trim();
+    const email = document.getElementById('reg-email').value.trim().toLowerCase();
+    const id_num = document.getElementById('reg-id').value.trim();
     const college = document.getElementById('reg-college').value;
-    const course  = document.getElementById('reg-course').value;
-    const pass    = document.getElementById('reg-pass').value;
+    const course = document.getElementById('reg-course').value;
+    const pass = document.getElementById('reg-pass').value;
     const confirm = document.getElementById('reg-confirm').value;
 
     if (!name || !email || !id_num || !college || !course || !pass || !confirm) {
@@ -167,7 +201,7 @@ async function handleRegister() {
     hideLoading(); btn.disabled = false; btn.textContent = 'Create Account';
     showToast(`Account created! Welcome, ${name}. You may now log in. ✅`);
 
-    ['reg-name','reg-email','reg-id','reg-pass','reg-confirm'].forEach(id => document.getElementById(id).value = '');
+    ['reg-name', 'reg-email', 'reg-id', 'reg-pass', 'reg-confirm'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('reg-college').value = '';
     document.getElementById('reg-course').innerHTML = '<option value="" disabled selected>Select Program / Course</option>';
     setTimeout(showLogin, 1500);
@@ -176,7 +210,7 @@ async function handleRegister() {
 // ── Login ──────────────────────────────────────────────────────
 async function handleLogin() {
     const email = document.getElementById('email-input').value.trim().toLowerCase();
-    const pass  = document.getElementById('pass-input').value;
+    const pass = document.getElementById('pass-input').value;
     if (!email || !pass) { showToast('Please enter credentials.', 'error'); return; }
 
     const btn = document.getElementById('login-btn');
@@ -232,11 +266,11 @@ function enterRegular(email, profile) {
     document.getElementById('visitor-form').classList.remove('hidden');
     document.getElementById('admin-dashboard').classList.add('hidden');
     document.getElementById('welcome-msg').innerText = `Welcome, ${profile?.full_name || email}!`;
-    document.getElementById('view-title').innerText  = 'Visitor Entry Form';
+    document.getElementById('view-title').innerText = 'Visitor Entry Form';
 
     if (profile) {
         document.getElementById('v-name').value = profile.full_name || '';
-        document.getElementById('v-id').value   = profile.id_number || '';
+        document.getElementById('v-id').value = profile.id_number || '';
         if (profile.college) {
             document.getElementById('college-select').value = profile.college;
             updateCourses();
@@ -252,7 +286,7 @@ function enterAdmin() {
     document.getElementById('app-content').style.display = 'block';
     document.getElementById('visitor-form').classList.add('hidden');
     document.getElementById('admin-dashboard').classList.remove('hidden');
-    document.getElementById('view-title').innerText  = 'Admin Analytics Dashboard';
+    document.getElementById('view-title').innerText = 'Admin Analytics Dashboard';
     document.getElementById('welcome-msg').innerText = 'System Administrator Access';
     document.getElementById('top-switcher').style.display = 'none';
     document.getElementById('filter-date').value = todayPH();
@@ -270,12 +304,12 @@ async function logoutAdmin() {
 
 // ── Submit Visitor Log ─────────────────────────────────────────
 async function submitLog() {
-    const name    = document.getElementById('v-name').value.trim();
-    const id_num  = document.getElementById('v-id').value.trim();
+    const name = document.getElementById('v-name').value.trim();
+    const id_num = document.getElementById('v-id').value.trim();
     const college = document.getElementById('college-select').value;
-    const course  = document.getElementById('course-select').value;
-    const type    = document.getElementById('visitor-type').value;
-    const reason  = document.getElementById('v-reason').value;
+    const course = document.getElementById('course-select').value;
+    const type = document.getElementById('visitor-type').value;
+    const reason = document.getElementById('v-reason').value;
 
     if (!name || !id_num || !college || !course || !type || !reason) {
         showToast('Please complete all fields.', 'error'); return;
@@ -303,7 +337,7 @@ async function loadAdminData() {
     showLoading('Loading dashboard...');
     const dateVal = document.getElementById('filter-date').value || todayPH();
     const college = document.getElementById('filter-college').value;
-    const reason  = document.getElementById('filter-reason').value;
+    const reason = document.getElementById('filter-reason').value;
 
     let query = db.from('visitor_logs').select('*')
         .gte('time_in', dateVal + 'T00:00:00')
@@ -311,7 +345,7 @@ async function loadAdminData() {
         .order('time_in', { ascending: false });
 
     if (college !== 'all') query = query.eq('college', college);
-    if (reason  !== 'all') query = query.eq('reason', reason);
+    if (reason !== 'all') query = query.eq('reason', reason);
 
     const { data, error } = await query;
     hideLoading();
@@ -378,7 +412,7 @@ function renderChart(rows) {
             responsive: true, maintainAspectRatio: false,
             scales: {
                 y: { ticks: { color: 'white', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.1)' } },
-                x: { ticks: { color: 'white' },             grid: { color: 'rgba(255,255,255,0.1)' } }
+                x: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } }
             },
             plugins: { legend: { labels: { color: 'white' } } }
         }
@@ -411,9 +445,9 @@ function downloadPDF() {
     doc.text('NEW ERA UNIVERSITY — Library Visitor Log', 148.5, 11, { align: 'center' });
 
     // Info row: date, total, peak, print time
-    const dateVal   = document.getElementById('filter-date').value || todayPH();
-    const totalVal  = document.getElementById('total-v-count').innerText;
-    const peakVal   = document.getElementById('peak-hours-display').innerText;
+    const dateVal = document.getElementById('filter-date').value || todayPH();
+    const totalVal = document.getElementById('total-v-count').innerText;
+    const peakVal = document.getElementById('peak-hours-display').innerText;
     const printedAt = new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' });
 
     doc.setFontSize(9);
@@ -524,12 +558,12 @@ function downloadPDF() {
 
     if (!existingProfile) {
         await db.from('user_profiles').insert([{
-            id:        session.user.id,
+            id: session.user.id,
             full_name: meta.full_name || meta.name || email,
-            email:     email,
+            email: email,
             id_number: '',
-            college:   '',
-            course:    ''
+            college: '',
+            course: ''
         }]);
     }
 
