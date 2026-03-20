@@ -2,7 +2,7 @@
 
 A digital visitor login system for the **New Era University Library**, designed to streamline and record the entry of students, faculty, and guests into the library premises.
 
-> 🔗
+> 🔗 https://neulibraryvisitlog-pe.vercel.app/
 
 (for admin acc optional): jcesperanza@neu.edu.ph Password: adminjcesperanza
 
